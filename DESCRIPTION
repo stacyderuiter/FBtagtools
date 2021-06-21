@@ -1,13 +1,13 @@
 Package: FBtagtools
-Title: What the Package Does (One Line, Title Case)
+Title: Tools for working with FB SMRT (and Lander2) tag data
 Version: 0.0.0.9000
 Authors@R: 
-    person(given = "First",
-           family = "Last",
+    person(given = "Stacy",
+           family = "DeRuiter",
            role = c("aut", "cre"),
-           email = "first.last@example.com",
+           email = "sld33@calvin.edu",
            comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
+Description: Tools for working with FB SMRT (and Lander2) tag data
 License: MIT + file LICENSE
 Suggests: 
     testthat (>= 3.0.0)
