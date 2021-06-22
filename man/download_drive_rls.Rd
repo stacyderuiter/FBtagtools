@@ -2,17 +2,20 @@
 % Please edit documentation in R/download_drive_rls.R
 \name{download_drive_rls}
 \alias{download_drive_rls}
-\title{Download file with (rawest, confusing) received levels of anthropogenic sounds from the FB Google Drive}
+\title{Download raw RL data from the FB Google Drive}
 \usage{
 download_drive_rls(
-  rl_file = "qPing_log_corr_times_master",
+  rl_file = "RLs_3obank",
+  ping_log_file = "qPing_log_corr_times_master",
   path = getwd(),
   email,
   overwrite = TRUE
 )
 }
 \arguments{
-\item{rl_file}{name of .csv file (on Google Drive) with raw RL data. Defaults to: qPing_log_corr_times_master.csv (most users should not need to change this, and at present there IS no other file.)}
+\item{rl_file}{name of .csv file (on Google Drive) with ping log data. Defaults to: RLs_3obank.csv (most users should not need to change this, and at present there IS no other file.)}
+
+\item{ping_log_file}{name of .csv file (on Google Drive) with ping log data. Defaults to: qPing_log_corr_times_master.csv (most users should not need to change this, and at present there IS no other file.)}
 
 \item{path}{Quoted string with the path to the directory where you want to save the downloaded file. Defaults to the current working directory. Final "/" not needed. Use "/" rather than "\" to avoid possible headaches.}
 
@@ -24,7 +27,7 @@ download_drive_rls(
 Returns a "dribble" with information about the files and their location on google drive. (The function also downloads the requested files, of course.)
 }
 \description{
-This function downloads the "raw" format of RL data, for all types of anthropogenic sounds, in all available variations of RL type and frequency band. Most users will want to also use \code{\link[FBtagtools]{parse_rls}} to generate data frames or text files with data in a simpler format.
+This function downloads the "raw" format of RL data, for all types of anthropogenic sounds, in all available variations of RL type and frequency band. Most users will want to also use \code{\link[FBtagtools]{extract_rls}} to generate data frames or text files with data in a simpler format.
 }
 \examples{
 download_drive_nc(email = "sld33@calvin.edu") # (this only works if you know sld33's password...)
