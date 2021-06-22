@@ -3,20 +3,31 @@
 #' Summarize SMRT (and/or Lander2) tag data from .nc files for each foraging dive cycle. Note: Currently for only SMRT tags; function and help will be updated to allow inclusion of Lander2 data as well when possible.
 #'
 #' @param tag_id Character string or vector with tag IDs (without "-cal.nc"). Default: all SMRT ziphius tags.
-#' @param path Directory (quoted string) where .nc files are stored. Can be one string, or a list the same length as tag_ids. Note: to download latest versions from Google drive, try function: \code{\link[FBtagtools]{download_drive_nc}}. Default: current working directory. Note: use "/" and not "\" to avoid headaches.
-#' @param
+#' @param nc_path Directory (quoted string) where .nc files are stored. Can be one string, or a list the same length as tag_ids. Note: to download latest versions from Google drive, try function: \code{\link[FBtagtools]{download_drive_nc}}. Default: current working directory. Note: use "/" and not "\" to avoid headaches.
+#' @param ae_path Directory (quoted string) where text files with info about acoustic events are stored. If needed, you can use \code{\link[FBtagtools]{download_drive_acoustic_events}} to get these. Default is the current working directory.
+#' @param save_csv Logical; whether or not to save a csv file with the results. Default: FALSE
+#' @param csv_name File name (with path, if desired) in which to save results in csv format. Default is acoustic_summary.csv.
+#' @result A data.frame() with one row per dive, per whale
 #' @export
 #' @examples
 #' Examples will go here
 dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
-                                  path = ''
+                                  nc_path = getwd(),
+                                  ae_path = getwd()
+
 ){
+  if ('data.frame' %in% class(tag_id)){
+    tag_id <- tag_id[,'tag_id']
+  }
 
   # paste together file path(s) and tag file name(s)
   tags <- file.path(path, tag_id)
 
   # empty list to store results
   data_out <- list()
+
+  # list of all ae files
+  ae_files <- dir(path = ae_path)
 
   # loop over tags
   for (t in c(1:length(tags))){
@@ -35,11 +46,127 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
     # load in the data for this tag
     this_data <- tagtools::load_nc(tags[t])
 
-    # placeholder to make sure the file-reading, tibble-concatenating code works
-    data_out[[t]] <- tibble::tibble(depth = this_data$depth$data,
-                            tag_id = tag_id[t])
+    # Detect dives
+    # record:
+    #  dive duration, start, end
 
-  } # end of loop over tags
+    # one whale has some missing data in sensors.
+    # this will mess up find_dives
+    # make new depth vector with 0 rather than NA for this case
+    if (sum(is.na(this_data$depth$data)) > 0){
+      z <- tidyr::replace_na(this_data$depth$data,
+                             replace = 0)
+      these_dives <- tagtools::find_dives(p = z,
+                                          sampling_rate = this_data$depth$sampling_rate,
+                                          mindepth = 10,
+                                          findall = 1)
+    }else{
+      these_dives <- tagtools::find_dives(p = this_data$depth,
+                                          mindepth = 10,
+                                          findall = 1)
+    }
+
+    # read in data on acoustic events from files, for this tag t
+    bi <- stringr::str_detect(ae_files, pattern = 'BUZZ') &
+      stringr::str_detect(ae_files, pattern = tag_id[t])
+
+    ci <- stringr::str_detect(ae_files, pattern = 'AllClickData') &
+      stringr::str_detect(ae_files, pattern = tag_id[t])
+
+    ei <- stringr::str_detect(ae_files, pattern = 'Post_Processed_Events') &
+      stringr::str_detect(ae_files, pattern = tag_id[t])
+
+    this_buzz <- data.frame() #placeholder
+
+    if (sum(bi) == 1){
+      this_buzz <- readxl::read_xlsx(file.path(ae.path, ae_files[bi]))
+    }
+
+    if (sum(bi) > 1){
+      this_buzz <- list()
+      idx <- which(bi)
+      for (i in c(1:sum(bi))){
+        this_buzz[[i]] <- readxl::read_xlsx(file.path(ae.path, ae_files[idx[i]]))
+      }
+      this_buzz <- dplyr::bind_rows(this_buzz) %>%
+        dplyr::distinct()
+    }
+
+    #FOR BUZZES
+    # per SC keep ones that are labelled "BW Buzz" but not "Poss" or "Possible"
+    this_buzz <- this_buzz %>%
+      dplyr::filter(stringr::str_detect(Label, 'BW Buzz') |
+                      stringr::str_detect(Note, 'BW Buzz')) %>%
+      dplyr::filter(stringr::str_detect(tolower(Label), 'poss', negate = TRUE)) %>%
+      dplyr::filter(stringr::str_detect(tolower(Note), 'poss', negate = TRUE))
+
+    this_allclicks <- data.frame() #placeholder
+
+    if (sum(ci) == 1){
+      this_allclicks <- readxl::read_xlsx(file.path(ae.path, ae_files[ci]))
+    }
+
+    if (sum(ci) > 1){
+      this_allclicks <- list()
+      idx <- which(ci)
+      for (i in c(1:sum(ci))){
+        this_allclicks[[i]] <- readxl::read_xlsx(file.path(ae.path, ae_files[idx[i]]))
+      }
+      this_allclicks <- dplyr::bind_rows(this_allclicks) %>%
+        dplyr::distinct()
+    }
+
+    this_events <- data.frame() #placeholder
+
+    if (sum(ei) == 1){
+      this_events <- readxl::read_xlsx(file.path(ae.path, ae_files[ei]))
+    }
+
+    if (sum(ei) > 1){
+      this_events <- list()
+      idx <- which(ei)
+      for (i in c(1:sum(ei))){
+        this_events[[i]] <- readxl::read_xlsx(file.path(ae.path, ae_files[idx[i]]))
+      }
+      this_events <- dplyr::bind_rows(this_events) %>%
+        dplyr::distinct()
+    }
+    # focal clicks
+    this_focal_clicks <- this_allclicks %>%
+      dplyr::filter(stringr::str_detect(eventType, 'FD'))
+
+    # nonfocal clicks
+    this_nf_clicks = this_allclicks %>%
+      dplyr::filter(stringr::str_detect(eventType, 'Other BW'))
+
+
+    # fill in:
+    # 1. Duration of clicking - start time of clicking to end time of clicking
+    # 3. Time it takes for clicking to start once dive begins and time it takes once clicking stops for the animal to surface.
+    # 5. What depth was the animal at when clicking started and ended?
+      # 6. Min/Max dive depth while foraging
+    # 8. How many foraging dives had other BWs detected? This would be noted by "Other BW" as the event label right next to a "FD".
+      # 10. Number of buzzes that occurred during the foraging dive? This would be using labels where it says "BW Buzz", NOT poss or probable BW buzz. If we need to clean up our buzz dataset a bit more before we look at buzzes I can do that.
+    # 11. What depth do buzzes occur?
+      # 12. Number of clicks per foraging dive
+    # 14. Percent of time clicking
+    # 15. Percent of time clicking compared to the full dive time
+
+    # further ext data: time of day
+    # 4. When is clicking occurring? Day or night?
+
+    # 7. Estimated distance traveled during foraging dive
+    # 9. Where is clicking occurring as it relates to bottom depth
+
+    # (make missing for files with no clicks and/or no acoustic data)
+
+
+
+    # placeholder to make sure the file-reading, tibble-concatenating code works
+    data_out[[t]] <- these_dives %>%
+      dplyr::mutate(tag_id = tag_id[t])
+
+  } # end of loop over TAGS
 
   # make sure we have one df and not a list of them
   data_out <- dplyr::bind_rows(data_out)

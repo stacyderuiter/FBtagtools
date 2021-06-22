@@ -4,12 +4,22 @@
 \alias{dive_acoustic_summary}
 \title{Dive-level acoustic and tag data, for one or more tags}
 \usage{
-dive_acoustic_summary(tag_id = zc_smrt_tag_list, path = "")
+dive_acoustic_summary(
+  tag_id = zc_smrt_tag_list,
+  nc_path = getwd(),
+  ae_path = getwd()
+)
 }
 \arguments{
 \item{tag_id}{Character string or vector with tag IDs (without "-cal.nc"). Default: all SMRT ziphius tags.}
 
-\item{path}{Directory (quoted string) where .nc files are stored. Can be one string, or a list the same length as tag_ids. Note: to download latest versions from Google drive, try function: \code{\link[FBtagtools]{download_drive_nc}}. Default: current working directory. Note: use "/" and not "\" to avoid headaches.}
+\item{nc_path}{Directory (quoted string) where .nc files are stored. Can be one string, or a list the same length as tag_ids. Note: to download latest versions from Google drive, try function: \code{\link[FBtagtools]{download_drive_nc}}. Default: current working directory. Note: use "/" and not "\" to avoid headaches.}
+
+\item{ae_path}{Directory (quoted string) where text files with info about acoustic events are stored. If needed, you can use \code{\link[FBtagtools]{download_drive_acoustic_events}} to get these. Default is the current working directory.}
+
+\item{save_csv}{Logical; whether or not to save a csv file with the results. Default: FALSE}
+
+\item{csv_name}{File name (with path, if desired) in which to save results in csv format. Default is acoustic_summary.csv.}
 }
 \description{
 Summarize SMRT (and/or Lander2) tag data from .nc files for each foraging dive cycle. Note: Currently for only SMRT tags; function and help will be updated to allow inclusion of Lander2 data as well when possible.

@@ -11,7 +11,7 @@
 #' @examples
 #' download_drive_nc(email = "sld33@calvin.edu") # (this only works if you know sld33's password...)
 download_drive_nc <- function(tag_id = zc_smrt_tag_list,
-                                  path = '',
+                                  path = getwd(),
                               email,
                               overwrite = TRUE){
   if (missing(email)){
@@ -28,7 +28,7 @@ download_drive_nc <- function(tag_id = zc_smrt_tag_list,
   # will find stuff that is in other places but has tagid-cal.nc in filename
   # but is a lot slower
   for (t in c(1:nrow(tag_id))){
-    nc_files[[t]] <- drive_find(pattern = paste0('*',
+    nc_files[[t]] <- googledrive::drive_find(pattern = paste0('*',
                                                  tag_id %>%
                                                    dplyr::pull(tag_id) %>%
                                                    dplyr::nth(t),

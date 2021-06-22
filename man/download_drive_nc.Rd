@@ -6,7 +6,7 @@
 \usage{
 download_drive_nc(
   tag_id = zc_smrt_tag_list,
-  path = "",
+  path = getwd(),
   email,
   overwrite = TRUE
 )
