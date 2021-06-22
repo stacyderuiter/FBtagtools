@@ -21,7 +21,7 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
   }
 
   # paste together file path(s) and tag file name(s)
-  tags <- file.path(path, tag_id)
+  tags <- file.path(nc_path, tag_id)
 
   # empty list to store results
   data_out <- list()
@@ -94,11 +94,13 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
 
     #FOR BUZZES
     # per SC keep ones that are labelled "BW Buzz" but not "Poss" or "Possible"
+    if (nrow(this_buzz) > 0){
     this_buzz <- this_buzz %>%
       dplyr::filter(stringr::str_detect(Label, 'BW Buzz') |
                       stringr::str_detect(Note, 'BW Buzz')) %>%
       dplyr::filter(stringr::str_detect(tolower(Label), 'poss', negate = TRUE)) %>%
       dplyr::filter(stringr::str_detect(tolower(Note), 'poss', negate = TRUE))
+    }
 
     this_allclicks <- data.frame() #placeholder
 
@@ -131,6 +133,8 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
       this_events <- dplyr::bind_rows(this_events) %>%
         dplyr::distinct()
     }
+
+    if (nrow(this_allclicks) > 0){
     # focal clicks
     this_focal_clicks <- this_allclicks %>%
       dplyr::filter(stringr::str_detect(eventType, 'FD'))
@@ -138,6 +142,14 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
     # nonfocal clicks
     this_nf_clicks = this_allclicks %>%
       dplyr::filter(stringr::str_detect(eventType, 'Other BW'))
+    }else{
+      this_focal_clicks <- this_nf_clicks <- this_allclicks
+    }
+
+    these_dives <- these_dives %>%
+      mutate(dive_dur_sec = end - start)
+
+    # check if there is clicking in each dive; if so fill in clicking vars
 
 
     # fill in:
