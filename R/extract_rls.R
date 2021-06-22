@@ -63,7 +63,10 @@ extract_rls <- function(rl_file,
 
   raw_pings <- suppressWarnings(readr::read_csv(ping_file_loc,
                                col_types = readr::cols())) %>%
-    dplyr::rename(duration = Seconds)
+    dplyr::rename(duration = Seconds,
+                  start_time = `Start-Ping`) %>%
+    dplyr::mutate(start_time = lubridate::mdy_hms(start_time) +
+                    lubridate::seconds(correction))
 
   raw_rls <- suppressWarnings(readr::read_csv(rl_file_loc,
                              col_types = readr::cols(),
@@ -94,22 +97,23 @@ extract_rls <- function(rl_file,
     mfa_bb <- ping_log %>%
       dplyr::filter(stringr::str_detect(tolower(Type), pattern = "mfa")) %>%
       dplyr::select(tidyselect::all_of(mfa_cols),
-                    `Tag ID`, Type, EventID, sec_since_tagon, duration,
+                    `Tag ID`, Type, EventID, start_time, sec_since_tagon, duration,
                     tagon_time) %>%
       tidyr::pivot_longer(cols = tidyselect::starts_with('SPL_')) %>%
       dplyr::group_by(`Tag ID`, tagon_time, Type, EventID,
-                      sec_since_tagon, duration) %>%
+                      start_time, sec_since_tagon, duration) %>%
       dplyr::summarize(BB_RMS = sum_rls(value)) %>%
       dplyr::ungroup()
 
     mfa_spl <- ping_log %>%
       dplyr::filter(stringr::str_detect(tolower(Type), pattern = "mfa")) %>%
       dplyr::select(tidyselect::all_of(mfa_cols),
-                    `Tag ID`, Type, EventID, sec_since_tagon, duration,
+                    `Tag ID`, Type, EventID, start_time, sec_since_tagon, duration,
                     tagon_time)
 
     mfa_pings <- dplyr::left_join(mfa_bb, mfa_spl,
-                                  by = c("Tag ID", "tagon_time", "Type", "EventID", "sec_since_tagon", "duration"))
+                                  by = c("Tag ID", "tagon_time", "Type", "EventID",
+                                         "start_time", "sec_since_tagon", "duration"))
   }else{
     mfa_pings <- NULL
   }
@@ -132,22 +136,23 @@ extract_rls <- function(rl_file,
     echo_bb <- ping_log %>%
       dplyr::filter(stringr::str_detect(tolower(Type), pattern = "echo")) %>%
       dplyr::select(tidyselect::all_of(echo_cols),
-                    `Tag ID`, Type, EventID, sec_since_tagon, duration,
+                    `Tag ID`, Type, EventID, start_time, sec_since_tagon, duration,
                     tagon_time) %>%
       tidyr::pivot_longer(cols = tidyselect::starts_with('SPL_')) %>%
       dplyr::group_by(`Tag ID`, tagon_time, Type, EventID,
-                      sec_since_tagon, duration) %>%
+                      start_time, sec_since_tagon, duration) %>%
       dplyr::summarize(BB_RMS = sum_rls(value)) %>%
       dplyr::ungroup()
 
     echo_spl <- ping_log %>%
       dplyr::filter(stringr::str_detect(tolower(Type), pattern = "echo")) %>%
       dplyr::select(tidyselect::all_of(echo_cols),
-                    `Tag ID`, Type, EventID, sec_since_tagon, duration,
+                    `Tag ID`, Type, EventID, start_time, sec_since_tagon, duration,
                     tagon_time)
 
     echo_pings <- dplyr::left_join(echo_bb, echo_spl,
-                                  by = c("Tag ID", "tagon_time", "Type", "EventID", "sec_since_tagon", "duration"))
+                                  by = c("Tag ID", "tagon_time", "Type", "EventID",
+                                         "start_time", "sec_since_tagon", "duration"))
 
   }else{
     echo_pings <- NULL
@@ -167,22 +172,23 @@ extract_rls <- function(rl_file,
     explos_bb <- ping_log %>%
       dplyr::filter(stringr::str_detect(tolower(Type), pattern = "explos")) %>%
       dplyr::select(tidyselect::all_of(explos_cols),
-                    `Tag ID`, Type, EventID, sec_since_tagon, duration,
+                    `Tag ID`, Type, EventID, start_time, sec_since_tagon, duration,
                     tagon_time) %>%
       tidyr::pivot_longer(cols = tidyselect::starts_with('SPL_')) %>%
       dplyr::group_by(`Tag ID`, tagon_time, Type, EventID,
-                      sec_since_tagon, duration) %>%
+                      start_time, sec_since_tagon, duration) %>%
       dplyr::summarize(BB_RMS = sum_rls(value)) %>%
       dplyr::ungroup()
 
     explos_spl <- ping_log %>%
       dplyr::filter(stringr::str_detect(tolower(Type), pattern = "explos")) %>%
       dplyr::select(tidyselect::all_of(explos_cols),
-                    `Tag ID`, Type, EventID, sec_since_tagon, duration,
+                    `Tag ID`, Type, EventID, start_time, sec_since_tagon, duration,
                     tagon_time)
 
     explos_pings <- dplyr::left_join(explos_bb, explos_spl,
-                                   by = c("Tag ID", "tagon_time", "Type", "EventID", "sec_since_tagon", "duration"))
+                                   by = c("Tag ID", "tagon_time", "Type", "EventID",
+                                          "start_time", "sec_since_tagon", "duration"))
 
   }else{
     explos_pings <- NULL
