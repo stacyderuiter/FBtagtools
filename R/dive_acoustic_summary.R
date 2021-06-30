@@ -5,8 +5,12 @@
 #' @param tag_id Character string or vector with tag IDs (without "-cal.nc"). Default: all SMRT ziphius tags.
 #' @param nc_path Directory (quoted string) where .nc files are stored. Can be one string, or a list the same length as tag_ids. Note: to download latest versions from Google drive, try function: \code{\link[FBtagtools]{download_drive_nc}}. Default: current working directory. Note: use "/" and not "\" to avoid headaches.
 #' @param ae_path Directory (quoted string) where text files with info about acoustic events are stored. If needed, you can use \code{\link[FBtagtools]{download_drive_acoustic_events}} to get these. Default is the current working directory.
-#' @param save_csv Logical; whether or not to save a csv file with the results. Default: FALSE
-#' @param csv_name File name (with path, if desired) in which to save results in csv format. Default is acoustic_summary.csv.
+#' @param bathy_path A directory path to the folder containing all bathymetry data. Use \code{\link[FBtagtools]{download_bathy}} if you don't have this data already. If not provided, the bathymetry data will not be included in the output dataset.
+#' @param rl_file name (with path, if needed) of locally-stored .csv file with raw RL data. If not provided, the default is to use \code{\link[FBtagtools]{download_drive_rls}} to obtain it from the FB Google Drive.
+#' @param ping_log_file name (with path, if needed) of locally-stored .csv file with raw RL data. If not provided, the default is to use \code{\link[FBtagtools]{download_drive_rls}} to obtain it from the FB Google Drive.
+#' @param email Email address (required for FB Google Drive authentication; optional if `rl_file` is provided). You may also be asked to sign in or verify your Google identity as this function runs.
+#' @param save_csv Logical; whether or not to save a csv file with the results. Default: TRUE (and will overwrite any existing file)
+#' @param csv_name File name (with path, if desired) in which to save results in csv format. Default is dive_acoustic_summary.csv.
 #' @result A data.frame() with one row per dive, per whale
 #' @importFrom magrittr "%>%"
 #' @export
@@ -14,9 +18,13 @@
 #' Examples will go here
 dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
                                   nc_path = getwd(),
-                                  ae_path = getwd()
-
-){
+                                  ae_path = getwd(),
+                                  bathy_path,
+                                  rl_file,
+                                  ping_log_file,
+                                  email,
+                                  save_csv = TRUE,
+                                  csv_name = 'dive_acoustic_summary.csv'){
   if ('data.frame' %in% class(tag_id)){
     tag_id <- tag_id[,'tag_id']
   }
@@ -24,15 +32,23 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
   # paste together file path(s) and tag file name(s)
   tags <- file.path(nc_path, tag_id)
 
-  # empty list to store results
-  data_out <- list()
 
   # list of all ae files
   ae_files <- dir(path = ae_path)
 
-  all_mfa_rls <- extract_rls(rl_file = 'F:/FBArchivalTags/RLs_3obank.csv',
-                             ping_log_file = 'F:/FBArchivalTags/qPing_log_corr_times_master.csv',
-                             save_output = FALSE)
+  if (!missing(rl_file) & !missing(ping_log_file)){
+    # if RL data files already downloaded
+    all_mfa_rls <- extract_rls(rl_file = rl_file,
+                               ping_log_file = ping_log_file,
+                               save_output = FALSE)
+  }else{
+    if (missing(email)){
+      stop('email is needed to download RL data from Drive')
+    }
+    all_mfa_rls <- extract_rls(save_output = FALSE)
+  }
+
+
 
   # loop over tags
   for (t in c(1:length(tags))){
@@ -290,12 +306,12 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
         mfa_bb_rms_min = max(BB_RMS, na.rm = TRUE),
         mfa_bb_rms_median = median(BB_RMS, na.rm = TRUE),
         mfa_bb_rms_mean = suppressWarnings(10 * log10(mean(10 ^ (na.omit(BB_RMS) / 10)))),
-        mfa_bb_rms_mean = ifelse(is.infinite(mean_mfa_bb_rms) |
-                                   is.na(mean_mfa_bb_rms),
+        mfa_bb_rms_mean = ifelse(is.infinite(mfa_bb_rms_mean) |
+                                   is.na(mfa_bb_rms_mean),
                                  NA,
-                                 mean_mfa_bb_rms))   %>%
+                                 mfa_bb_rms_mean))   %>%
       dplyr::mutate(dplyr::across(starts_with('mfa'),
-                                      ~ifelse(is.infinite(.x), NA, .x)))
+                                      ~ifelse(is.infinite(.x), NA, .x))) %>%
       dplyr::ungroup()
 
 
@@ -323,10 +339,10 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
       dplyr::select(sec_since_tagon,
                     latitude,
                     longitude) %>%
-      dplyr::filter(sec_since_tagon < max(pull(these_dives, end, na.rm = TRUE)))
+      dplyr::filter(sec_since_tagon < max(pull(these_dives, end), na.rm = TRUE))
 
     # add in all locs DURING the dive
-    these_dives <- suppressWarning(interval_join(these_dives,
+    these_dives <- suppressWarnings(interval_join(these_dives,
                                  these_locs,
                                  start_x = start,
                                  end_x = end,
@@ -389,7 +405,17 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
                                                                 dplyr::pull(these_dives, lon_initial) %>%
                                                                   dplyr::last())))
     # Add bathy info
-    # make add_bathy() function? Build bathy data into pkg?
+    if (!missing(bathy_path)){
+      # only if bathy data are available
+      these_dives <- add_bathy(x = these_dives,
+                               lat_var = lat_initial,
+                               lon_var = lon_initial,
+                               z_radius = 2.5,
+                               bathy_path = bathy_path
+                               )
+
+    }
+
     # 9. Where is clicking occurring as it relates to bottom depth
 
 
