@@ -33,11 +33,11 @@ interval_join <- function(x, y, start_x, start_y,
     x <- x %>% dplyr::arrange(!!start_x)
     y <- y %>% dplyr::arrange(!!start_y)
     x <- x %>%
-      dplyr::mutate(..index.. = 1:n())
+      dplyr::mutate(..index.. = 1:dplyr::n())
 
     y <- y %>%
-      dplyr::mutate(..index1.. = purrr::map_dbl(!!start_y, ~ max(which(x %>% pull(!!start_x) <= .x)))) %>%
-      dplyr::mutate(..index2.. = purrr::map_dbl(!!end_y,   ~ min(which(x %>% pull(!!end_x)   >= .x)))) %>%
+      dplyr::mutate(..index1.. = purrr::map_dbl(!!start_y, ~ max(which(x %>% dplyr::pull(!!start_x) <= .x)))) %>%
+      dplyr::mutate(..index2.. = purrr::map_dbl(!!end_y,   ~ min(which(x %>% dplyr::pull(!!end_x)   >= .x)))) %>%
       dplyr::mutate(..index..  = ..index1..) %>%
       dplyr::filter(..index1.. == ..index2..)
 

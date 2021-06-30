@@ -52,7 +52,9 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
 
   # loop over tags
   for (t in c(1:length(tags))){
-    rm(these_dives)
+    if (exists('these_dives')){
+      rm(these_dives)
+    }
     # check if the tags filename contains ".nc" and add it if not
     if (stringr::str_detect(tags[t],
                             pattern = '.nc',
@@ -132,7 +134,7 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
                                         pattern = 'probabl',
                                         negate = TRUE)) %>%
       # make function to do this: add depth data to a df with sec_since_tagon
-      mutate(buzz_depth = this_data$depth$data[round(sec_since_tagon -
+      dplyr::mutate(buzz_depth = this_data$depth$data[round(sec_since_tagon -
                                                        this_data$depth$start_offset) *
                                                  this_data$depth$sampling_rate] %>%
                as.numeric())
@@ -183,10 +185,10 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
     }
 
     these_dives <- these_dives %>%
-      mutate(dive_dur_sec = end - start)
+      dplyr::mutate(dive_dur_sec = end - start)
 
     # check if there is clicking in each dive; if so fill in clicking variables
-
+    if (nrow(this_focal_clicks) > 0){
     # add focal clicks to the dive dataset (there will temp be one row per CLICK)
     these_dives <- interval_join(these_dives,
                                  this_focal_clicks %>%
@@ -216,8 +218,10 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
         focal_click_UID = paste(click_UID, collapse = '|')
       ) %>%
       dplyr::ungroup()
+    }
 
     # Now add nf clicks to dataset
+    if (nrow(this_nf_clicks) > 0){
     these_dives <- interval_join(these_dives,
                                  this_nf_clicks %>%
                                    dplyr::select(click_UID,
@@ -235,12 +239,14 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
         n_focal_clicks = sum(!is.na(sec_since_tagon)),
         nonfocal_click_UID = paste(click_UID, collapse = '|')
       )
+    }
 
 
     # Add info about clicking depths
     # need dive data as a dataframe
     this_depth <- add_sensor_times(this_data$depth)
 
+    if (nrow(this_focal_clicks) > 0){
     # join depth data and dive data so far
     these_dives_ckd <- interval_join(these_dives %>%
                                        dplyr::filter(n_clicks > 0),
@@ -263,8 +269,10 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
     these_dives <- dplyr::left_join(these_dives, these_dives_ckd,
                                     by = intersect(names(these_dives),
                                                    names(these_dives_ckd)))
+    }
 
     # add info about buzzes
+    if (nrow(this_buzz) > 1){
     these_dives <- interval_join(these_dives,
                                      this_buzz %>% select(sec_since_tagon,
                                                           buzz_duration_s,
@@ -288,6 +296,9 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
       dplyr::mutate(dplyr::across(starts_with('buzz'),
                                   ~ifelse(is.infinite(.x), NA, .x))) %>%
       dplyr::ungroup()
+    }
+
+    if (nrow(these_rls) > 0){
 
     # Add RLs to dataset
     these_dives <- interval_join(these_dives,
@@ -313,7 +324,7 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
       dplyr::mutate(dplyr::across(starts_with('mfa'),
                                       ~ifelse(is.infinite(.x), NA, .x))) %>%
       dplyr::ungroup()
-
+    }
 
     # Add GPS info
       # note -- make function to turn GPS stuff into data frame?
@@ -327,9 +338,9 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
     names(these_resids) <- c('sec_since_tagon', 'residual')
     names(these_timeerr) <- c('sec_since_tagon', 'time_error')
 
-    these_locs <- left_join(these_locs, these_sats, by = 'sec_since_tagon')
-    these_locs <- left_join(these_locs, these_resids, by = 'sec_since_tagon')
-    these_locs <- left_join(these_locs, these_timeerr, by = 'sec_since_tagon')
+    these_locs <- dplyr::left_join(these_locs, these_sats, by = 'sec_since_tagon')
+    these_locs <- dplyr::left_join(these_locs, these_resids, by = 'sec_since_tagon')
+    these_locs <- dplyr::left_join(these_locs, these_timeerr, by = 'sec_since_tagon')
 
     these_locs <- these_locs %>%
       dplyr::filter(time_error < 3 &
@@ -339,7 +350,7 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
       dplyr::select(sec_since_tagon,
                     latitude,
                     longitude) %>%
-      dplyr::filter(sec_since_tagon < max(pull(these_dives, end), na.rm = TRUE))
+      dplyr::filter(sec_since_tagon < max(dplyr::pull(these_dives, end), na.rm = TRUE))
 
     # add in all locs DURING the dive
     these_dives <- suppressWarnings(interval_join(these_dives,
@@ -394,7 +405,7 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
 
     # add distance traveled during foraging
     these_dives <- these_dives %>%
-      mutate(distance_traveled_km = oce::geodDist(latitude1 = dplyr::pull(these_dives, lat_initial),
+      dplyr::mutate(distance_traveled_km = oce::geodDist(latitude1 = dplyr::pull(these_dives, lat_initial),
                                                  latitude2 = c(dplyr::pull(these_dives, lat_initial) %>%
                                                    utils::tail(-1),
                                                    dplyr::pull(these_dives, lat_initial) %>%

@@ -25,8 +25,8 @@ add_bathy <- function(x, lat_var, lon_var, z_radius = 2.5, bathy_path) {
     x <- x %>%
       tidyr::drop_na(c(!!lat_var, !!lon_var))
 
-    latrange <- range(pull(x, !!lat_var), na.rm = TRUE)
-    lonrange <- range(pull(x, !!lon_var), na.rm = TRUE)
+    latrange <- range(dplyr::pull(x, !!lat_var), na.rm = TRUE)
+    lonrange <- range(dplyr::pull(x, !!lon_var), na.rm = TRUE)
 
     coord <- x %>%
       dplyr::select(!!lon_var, !!lat_var)
