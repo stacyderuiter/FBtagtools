@@ -35,6 +35,9 @@ interval_join(
 
 \item{keep}{(Passed to \code{\link[dplyr]{left_join}}; most users can ignore and keep the default value, FALSE) Should the join keys from both x and y be preserved in the output?}
 }
+\value{
+A data.frame like the input interval dataset \code{x}, but with additional columns for the new summarized variables
+}
 \description{
 Given one dataset where each row represents an interval at coarser scale (for example, one row per dive with dive start/end times), pull in summary information about finer-time-scale data. For example, add the max RL during each dive, or the median MSA during each dive.
 }

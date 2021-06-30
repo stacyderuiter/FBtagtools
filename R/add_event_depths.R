@@ -8,7 +8,7 @@
 #' @param sampling_rate sampling rate of depth in Hz (required if x is not a sensor data structure, and ignored if it is)
 #' @param start_offset time (in seconds) between start of tag recording and the first recorded sample in `z`. Ignored (and pulled from metadata) if `x` is a sensor data structure. default: 0
 #' @param tagon_time string giving the tag recording start time. Can be found in tag_dataset$info$dephist_device_datetime_start. Format: day month year hours minutes seconds. Required if times in `x` are datetimes.
-#' @result A data.frame with the data (one row per event) and additional column depth (in meters) of the animal at the start time of the event. Note: if you want to grab and summarize depth data for longer intervals, consider \code{\link[FBtagtools]{interval_join}} or \code{\link[tagtools]{find_dives}} and \code{\link[tagtools]{dive_stats}}
+#' @return A data.frame with the data (one row per event) and additional column depth (in meters) of the animal at the start time of the event. Note: if you want to grab and summarize depth data for longer intervals, consider \code{\link[FBtagtools]{interval_join}} or \code{\link[tagtools]{find_dives}} and \code{\link[tagtools]{dive_stats}}
 #' @importFrom magrittr "%>%"
 #' @export
 #' @examples

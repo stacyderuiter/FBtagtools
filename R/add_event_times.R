@@ -5,7 +5,7 @@
 #' @param x input data frame: vector, tibble, or data frame.  There should be one column that gives either seconds_since_tagon or UTC time already present.
 #' @param start_x name of the variable in x that gives the times
 #' @param tagon_time string giving the tag recording start time (or the `info` sensor data structure). Can be found in tag_dataset$info$dephist_device_datetime_start. Format: day month year hours minutes seconds.
-#' @result The input `x`, but with additional column(s) sec_since_tagon with times in seconds since start of tag recording or utc_time (plus optionally local_time). Note, this function adds UTC times; if you want local times in addition, consider using  \code{\link[FBtagtools]{utc_to_local}} after this function.
+#' @return The input `x`, but with additional column(s) sec_since_tagon with times in seconds since start of tag recording or utc_time (plus optionally local_time). Note, this function adds UTC times; if you want local times in addition, consider using  \code{\link[FBtagtools]{utc_to_local}} after this function.
 #' @importFrom magrittr "%>%"
 #' @export
 #' @examples

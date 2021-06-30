@@ -13,6 +13,9 @@ add_event_times(x, start_x, tagon_time)
 
 \item{tagon_time}{string giving the tag recording start time (or the \code{info} sensor data structure). Can be found in tag_dataset$info$dephist_device_datetime_start. Format: day month year hours minutes seconds.}
 }
+\value{
+The input \code{x}, but with additional column(s) sec_since_tagon with times in seconds since start of tag recording or utc_time (plus optionally local_time). Note, this function adds UTC times; if you want local times in addition, consider using  \code{\link[FBtagtools]{utc_to_local}} after this function.
+}
 \description{
 Add time (in seconds since tagon or datetimes in UTC and/or local timezone) to a tibble or data-frame with event times (conversion between datetime and seconds_since_tagon formats)
 }

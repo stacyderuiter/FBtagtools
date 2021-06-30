@@ -24,9 +24,22 @@ dive_acoustic_summary(
 
 \item{ae_path}{Directory (quoted string) where text files with info about acoustic events are stored. If needed, you can use \code{\link[FBtagtools]{download_drive_acoustic_events}} to get these. Default is the current working directory.}
 
+\item{bathy_path}{A directory path to the folder containing all bathymetry data. Use \code{\link[FBtagtools]{download_bathy}} if you don't have this data already. If not provided, the bathymetry data will not be included in the output dataset.}
+
+\item{rl_file}{name (with path, if needed) of locally-stored .csv file with raw RL data. If not provided, the default is to use \code{\link[FBtagtools]{download_drive_rls}} to obtain it from the FB Google Drive.}
+
+\item{ping_log_file}{name (with path, if needed) of locally-stored .csv file with raw RL data. If not provided, the default is to use \code{\link[FBtagtools]{download_drive_rls}} to obtain it from the FB Google Drive.}
+
+\item{email}{Email address (required for FB Google Drive authentication; optional if \code{rl_file} is provided). You may also be asked to sign in or verify your Google identity as this function runs.}
+
 \item{save_csv}{Logical; whether or not to save a csv file with the results. Default: FALSE}
 
 \item{csv_name}{File name (with path, if desired) in which to save results in csv format. Default is acoustic_summary.csv.}
+}
+\value{
+A data.frame() with one row per dive, per whale
+
+A data.frame() with one row per dive, per whale
 }
 \description{
 Summarize SMRT (and/or Lander2) tag data from .nc files for each foraging dive cycle. Note: Currently for only SMRT tags; function and help will be updated to allow inclusion of Lander2 data as well when possible.

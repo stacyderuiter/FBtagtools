@@ -6,7 +6,7 @@
 #' @param lat latitude
 #' @param long longitude
 #' @param time_zone Time zone for local time; defaults to 'America/Los_Angeles'
-#' @result solar stage (categorical): "Day", "Night", "Dusk" or "Dawn"
+#' @return solar stage (categorical): "Day", "Night", "Dusk" or "Dawn"
 #' @importFrom magrittr "%>%"
 #' @export
 #' @examples

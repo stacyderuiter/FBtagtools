@@ -23,6 +23,9 @@ add_sensor_times(
 
 \item{tagon_time}{string giving the tag recording start time. Can be found in tag_dataset$info$dephist_device_datetime_start. Format: day month year hours minutes seconds. Required if \code{add_dttm} is TRUE.}
 }
+\value{
+A data.frame with the data (one row per sample) and column sec_since_tagon with times in seconds since start of tag recording. Optionally, also includes column utc_time.
+}
 \description{
 Add time (in seconds since tagon and perhaps as datetimes in UTC and/or local timezone) to a tibble or data-frame with regularly sampled data
 }

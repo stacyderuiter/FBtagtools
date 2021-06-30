@@ -11,7 +11,7 @@
 #' @param email Email address (required for FB Google Drive authentication; optional if `rl_file` is provided). You may also be asked to sign in or verify your Google identity as this function runs.
 #' @param save_csv Logical; whether or not to save a csv file with the results. Default: TRUE (and will overwrite any existing file)
 #' @param csv_name File name (with path, if desired) in which to save results in csv format. Default is dive_acoustic_summary.csv.
-#' @result A data.frame() with one row per dive, per whale
+#' @return A data.frame() with one row per dive, per whale
 #' @importFrom magrittr "%>%"
 #' @export
 #' @examples
@@ -52,7 +52,7 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
 
   # loop over tags
   for (t in c(1:length(tags))){
-
+    rm(these_dives)
     # check if the tags filename contains ".nc" and add it if not
     if (stringr::str_detect(tags[t],
                             pattern = '.nc',

@@ -7,7 +7,7 @@
 #' @param start_offset time (in seconds) between start of tag recording and the first recorded sample. Ignored (and pulled from metadata) if `x` is a sensor data structure. default: 0
 #' @param add_utc_time Logical: should UTC time column be added? Default is FALSE.
 #' @param tagon_time string giving the tag recording start time. Can be found in tag_dataset$info$dephist_device_datetime_start. Format: day month year hours minutes seconds. Required if `add_dttm` is TRUE.
-#' @result A data.frame with the data (one row per sample) and column sec_since_tagon with times in seconds since start of tag recording. Optionally, also includes column utc_time.
+#' @return A data.frame with the data (one row per sample) and column sec_since_tagon with times in seconds since start of tag recording. Optionally, also includes column utc_time.
 #' @importFrom magrittr "%>%"
 #' @export
 #' @examples

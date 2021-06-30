@@ -59,9 +59,9 @@ add_bathy <- function(x, lat_var, lon_var, z_radius = 2.5, bathy_path) {
       x2 <- lonmax[i]
       y1 <- latmin[i]
       y2 <- latmax[i]
-      x <- c(x1, x1, x2, x2, x1)
-      y <- c(y1, y2, y2, y1, y1)
-      xy <- cbind(x, y)
+      xx <- c(x1, x1, x2, x2, x1)
+      yy <- c(y1, y2, y2, y1, y1)
+      xy <- cbind(xx, yy)
       xy <- sp::Polygons(list(sp::Polygon(xy)), ID=1)
       xy <- sp::SpatialPolygons(list(xy),
                                 proj4string = sp::CRS("+proj=longlat +datum=WGS84"))

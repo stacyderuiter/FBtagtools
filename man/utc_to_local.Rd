@@ -13,6 +13,9 @@ utc_to_local(x, utc_var, tz = "America/Los_Angeles")
 
 \item{tz}{desired time zone name -- for example the default, 'America/Los_Angeles'}
 }
+\value{
+data.frame \code{x} with one added column called local_time
+}
 \description{
 Given an input data frame that already has UTC datetimes, add another datetime column giving the local time
 }

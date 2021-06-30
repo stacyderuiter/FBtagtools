@@ -19,6 +19,9 @@ add_event_depths(x, start_x, z, sampling_rate, start_offset = 0, tagon_time)
 
 \item{tagon_time}{string giving the tag recording start time. Can be found in tag_dataset$info$dephist_device_datetime_start. Format: day month year hours minutes seconds. Required if times in \code{x} are datetimes.}
 }
+\value{
+A data.frame with the data (one row per event) and additional column depth (in meters) of the animal at the start time of the event. Note: if you want to grab and summarize depth data for longer intervals, consider \code{\link[FBtagtools]{interval_join}} or \code{\link[tagtools]{find_dives}} and \code{\link[tagtools]{dive_stats}}
+}
 \description{
 Add time (in seconds since tagon and perhaps as datetimes in UTC and/or local timezone) to a tibble or data-frame with regularly sampled data
 }

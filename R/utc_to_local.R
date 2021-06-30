@@ -5,7 +5,7 @@
 #' @param x input data must contain a column that gives the UTC times to be converted to local
 #' @param utc_var name of variable (in `x`) that gives the UTC times
 #' @param tz desired time zone name -- for example the default, 'America/Los_Angeles'
-#' @result data.frame `x` with one added column called local_time
+#' @return data.frame `x` with one added column called local_time
 #' @importFrom magrittr "%>%"
 #' @export
 #' @examples

@@ -11,7 +11,7 @@
 #' @param suffix 	(Passed to \code{\link[dplyr]{left_join}}; most users can ignore) If there are non-joined duplicate variables in x and y, these suffixes will be added to the output to disambiguate them. Should be a character vector of length 2.
 #' @param keep (Passed to \code{\link[dplyr]{left_join}}; most users can ignore and keep the default value, FALSE) Should the join keys from both x and y be preserved in the output?
 #' @param ... Additional arguments to pass to \code{\link[dplyr]{left_join}}
-#' @result A data.frame like the input interval dataset `x`, but with additional columns for the new summarized variables
+#' @return A data.frame like the input interval dataset `x`, but with additional columns for the new summarized variables
 #' @importFrom magrittr "%>%"
 #' @export
 #' @examples

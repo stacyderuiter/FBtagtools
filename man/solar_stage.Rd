@@ -15,6 +15,9 @@ solar_stage(time, lat, long, time_zone = "America/Los_Angeles")
 
 \item{utc_time}{UTC time}
 }
+\value{
+solar stage (categorical): "Day", "Night", "Dusk" or "Dawn"
+}
 \description{
 Add time (in seconds since tagon and perhaps as datetimes in UTC and/or local timezone) to a tibble or data-frame with regularly sampled data
 }
