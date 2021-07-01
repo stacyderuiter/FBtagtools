@@ -48,7 +48,7 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
     all_mfa_rls <- extract_rls(save_output = FALSE)
   }
 
-
+  data_out <- list()
 
   # loop over tags
   for (t in c(1:length(tags))){
@@ -274,7 +274,7 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
     # add info about buzzes
     if (nrow(this_buzz) > 1){
     these_dives <- interval_join(these_dives,
-                                     this_buzz %>% select(sec_since_tagon,
+                                     this_buzz %>% dplyr::select(sec_since_tagon,
                                                           buzz_duration_s,
                                                           buzz_depth),
                                      start_x = start,
@@ -302,7 +302,7 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
 
     # Add RLs to dataset
     these_dives <- interval_join(these_dives,
-                                 these_rls %>% select(sec_since_tagon,
+                                 these_rls %>% dplyr::select(sec_since_tagon,
                                                       BB_RMS),
                                  start_x = start,
                                  end_x = end,
@@ -432,45 +432,15 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
 
     # tibble-concatenating
     data_out[[t]] <- these_dives
+    data_out_all <- dplyr::bind_rows(data_out)
+    if (save_csv){
+      readr::write_csv(data_out_all, file = csv_name)
+    }
 
   } # end of loop over TAGS
 
   # make sure we have one df and not a list of them
-  data_out <- dplyr::bind_rows(data_out)
-  return(data_out)
-  }
 
-#
-#
-#   1. Duration of clicking - start time of clicking to end time of clicking
-# 2. Duration of dive  - end time of the surfacing prior to the foraging dive to the start time of the surfacing after the foraging event.
-# 3. Time it takes for clicking to start once dive begins and time it takes once clicking stops for the animal to surface.
-# 4. When is clicking occurring? Day or night?
-#   5. What depth was the animal at when clicking started and ended?
-#   6. Min/Max dive depth while foraging
-# 7. Estimated distance traveled during foraging dive
-# 8. How many foraging dives had other BWs detected? This would be noted by "Other BW" as the event label right next to a "FD".
-# 9. Where is clicking occurring as it relates to bottom depth  For the abstract, David used this for the bottom depth: https://github.com/dasweeney4423/tagproc/blob/master/R/bathy.sync.R. Can we add something like this to your code? Is there a better way?
-#
-#
-# 10. Number of buzzes that occurred during the foraging dive? This would be using labels where it says "BW Buzz", NOT poss or probable BW buzz. If we need to clean up our buzz dataset a bit more before we look at buzzes I can do that.
-# 11. What depth do buzzes occur?
-#   12. Number of clicks per foraging dive
-# 13. Duration of dives between day and night
-# 14. Percent of time clicking and total clicks produced
-# 15. Percent of time clicking compared to the full dive time
-# 16. Did clicking start/end deeper/shallower during day or night?
-#
-#   There is a folder of seafloor data here that Eric Keene obtained and we have used for various west coast things: FreakinBeakinTagData\Acoustic Preliminary Results\Resources-Seafloor.zip
-#
-# The code at the following link can also be used to pull it for desired locations (Eric's code that I have put into a github repo): https://github.com/dasweeney4423/tagproc/blob/master/R/bathy.sync.R
-#
-# This code can also pull data from a NOAA server using marmap::getNOAA.bathy, but the NOAA server version gives errors that I think have to do with limits to how many users can access the server at a time, which I can't figure out how to determine and it has poorer resolution.
-#
-#                                                                                   Also, the one time we have used dusk and dawn classifications for SOCAL Zc, we used the following code:
-#
-#                                                                                     solarstage <- function(time, lat, long) {
-#                                                                                       elev <- oce::sunAngle(time, long, lat)$altitude
-#                                                                                       #categorical returns
-#                                                                                       if (elev > 6) {
+  return(data_out_all)
+  }
 

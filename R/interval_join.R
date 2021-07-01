@@ -35,12 +35,31 @@ interval_join <- function(x, y, start_x, start_y,
     x <- x %>%
       dplyr::mutate(..index.. = 1:dplyr::n())
 
-    y <- y %>%
-      dplyr::mutate(..index1.. = purrr::map_dbl(!!start_y, ~ max(which(x %>% dplyr::pull(!!start_x) <= .x)))) %>%
-      dplyr::mutate(..index2.. = purrr::map_dbl(!!end_y,   ~ min(which(x %>% dplyr::pull(!!end_x)   >= .x)))) %>%
-      dplyr::mutate(..index..  = ..index1..) %>%
-      dplyr::filter(..index1.. == ..index2..)
+    # original version - perhaps slower?
+    # y <- y %>%
+    #   dplyr::mutate(..index1.. = purrr::map_dbl(!!start_y, ~ max(which(x %>% dplyr::pull(!!start_x) <= .x)))) %>%
+    #   dplyr::mutate(..index2.. = purrr::map_dbl(!!end_y,   ~ min(which(x %>% dplyr::pull(!!end_x)   >= .x)))) %>%
+    #   dplyr::mutate(..index..  = ..index1..) %>%
+    #   dplyr::filter(..index1.. == ..index2..)
 
-    dplyr::left_join(x, y, by = "..index..") %>%
+    # start of new bit
+    y <- y %>%
+            dplyr::mutate(
+              ..index1.. =
+                findInterval(y %>% dplyr::pull(!!start_y),
+                             x %>% dplyr::pull(!!start_x),
+                             rightmost.closed = TRUE),
+              ..index2.. =
+                findInterval(y %>% dplyr::pull(!!end_y),
+                             x %>% dplyr::pull(!!end_x),
+                             rightmost.closed = TRUE),
+              ..index..  =
+                ..index1..)
+
+    y <- y %>% dplyr::filter(..index1.. == ..index2.. + 1)
+    # end of new bit
+
+    dplyr::left_join(x, y, by = "..index..",
+                     na_matches = "never") %>%
       dplyr::select( - tidyselect::matches("..index"))
   }
