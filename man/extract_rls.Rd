@@ -4,29 +4,15 @@
 \alias{extract_rls}
 \title{extract RL data}
 \usage{
-extract_rls(
-  rl_file,
-  ping_log_file,
-  email,
-  save_output = TRUE,
-  path = getwd(),
-  out_file,
-  signal = "MFAS",
-  overwrite = TRUE
-)
+extract_rls(tag_id = zc_smrt_tag_list, nc_path = getwd())
 
-extract_rls(
-  rl_file,
-  ping_log_file,
-  email,
-  save_output = TRUE,
-  path = getwd(),
-  out_file,
-  signal = "MFAS",
-  overwrite = TRUE
-)
+extract_rls(tag_id = zc_smrt_tag_list, nc_path = getwd())
 }
 \arguments{
+\item{tag_id}{Deployment IDs for the tag(s) for which you want to pull information. Defaults to the Ziphius deployments in \code{zc_smrt_tag_list}.}
+
+\item{nc_path}{Quoted string with the path to the directory where nc files are stored. Defaults to current working directory.}
+
 \item{rl_file}{name (with path, if needed) of locally-stored .csv file with raw RL data. If not provided, the default is to use \code{\link[FBtagtools]{download_drive_rls}} to obtain it from the FB Google Drive.}
 
 \item{ping_log_file}{name (with path, if needed) of locally-stored .csv file with raw RL data. If not provided, the default is to use \code{\link[FBtagtools]{download_drive_rls}} to obtain it from the FB Google Drive.}
@@ -46,16 +32,14 @@ extract_rls(
 \value{
 Returns a data.frame with RLs (one row per ping). If \code{save_output} is true, also saves a csv file in directory \code{path} with filename \code{out_file.csv} with the results.
 
-Returns a data.frame with RLs (one row per ping). If \code{save_output} is true, also saves a csv file in directory \code{path} with filename \code{out_file.csv} with the results.
+Returns a data.frame with information about each wav file for each deployment of interest. If there are multiple rows per wav file, that is indicative of a (filled or un-filled) gap; the first row for a given deployment gives the file start time.
 }
 \description{
 This function processes the "raw" format of RL data, allowing users to obtain RLs of desired types and in selected frequency bands. If you need direct access to the (more complicated) raw data, see \code{\link[FBtagtools]{download_drive_rls}}.
 
-This function pulls data on start times (and other metadata) about acoustic wav files recorded by SMRT tags.
+This function pulls data on start times (and other metadata) about acoustic wav files recorded by SMRT tags. It assumes that you already have downloaded the nc files for the deployments of interest to you; if not, see \code{\link[FBtagtools]{download_drive_nc}}
 }
 \details{
-For MFAS: Events are marked type "MFA". This also includes CAS exposures (which, if we have separated them out before, it is by choosing MFA pings of duration more than 20 seconds). Measurements were made in ANSI-standard 1/3 octave bands centered from 1-40kHz. For MFA events, bands with center frequencies less than 9kHz are considered. For max RMS level, Units are: dB re 1 muPa.  Measured in 200 msec windows; reported level is the highest in any one window. (Following conventions of SOCAL BRS, 3S projects.) For Echosounder events, selected bands are between 10-14kHz. For SPLs in individual 1/3 octave bands, the RL is "missing" (NA) if the SNR in that band was less than 6dB (and/or if the frequency band in question is no relevant for the selected signal type). For Explosions, all 1/3 octave bands below 5 kHz are included.
-
 For MFAS: Events are marked type "MFA". This also includes CAS exposures (which, if we have separated them out before, it is by choosing MFA pings of duration more than 20 seconds). Measurements were made in ANSI-standard 1/3 octave bands centered from 1-40kHz. For MFA events, bands with center frequencies less than 9kHz are considered. For max RMS level, Units are: dB re 1 muPa.  Measured in 200 msec windows; reported level is the highest in any one window. (Following conventions of SOCAL BRS, 3S projects.) For Echosounder events, selected bands are between 10-14kHz. For SPLs in individual 1/3 octave bands, the RL is "missing" (NA) if the SNR in that band was less than 6dB (and/or if the frequency band in question is no relevant for the selected signal type). For Explosions, all 1/3 octave bands below 5 kHz are included.
 }
 \examples{

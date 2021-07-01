@@ -51,10 +51,13 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
   data_out <- list()
 
   # loop over tags
-  for (t in c(1:length(tags))){
+  for (t in c(6:length(tags))){
     if (exists('these_dives')){
       rm(these_dives)
     }
+    # garbage collection/free memory
+    gc()
+
     # check if the tags filename contains ".nc" and add it if not
     if (stringr::str_detect(tags[t],
                             pattern = '.nc',
