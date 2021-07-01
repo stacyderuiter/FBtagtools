@@ -9,7 +9,7 @@
 #' @export
 #' @examples
 #' extract_rls(email = "sld33@calvin.edu") # (this only works if you know sld33's password...)
-extract_rls <- function(tag_id = zc_smrt_tag_list,
+extract_wav_times <- function(tag_id = zc_smrt_tag_list,
                         nc_path = getwd()){
   if ('data.frame' %in% class(tag_id)){
     tag_id <- tag_id[,'tag_id']
