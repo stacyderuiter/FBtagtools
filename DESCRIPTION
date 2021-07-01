@@ -21,4 +21,14 @@ Depends:
 Imports: 
     googledrive,
     dplyr,
-    stringr
+    stringr,
+    sp,
+    readr,
+    tidyr,
+    readxl,
+    tibble,
+    lubridate,
+    oce,
+    rlang,
+    swfscMisc,
+    marmap
