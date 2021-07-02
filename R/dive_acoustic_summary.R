@@ -472,12 +472,21 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
     data_out[[t]] <- these_dives
     data_out_all <- dplyr::bind_rows(data_out)
     if (save_csv){
+      dout <- data_out_all %>%
+        dplyr::rename(max_depth = max,
+                      dive_start_sec = start,
+                      dive_end_sec = end) %>%
+        select(-tmax)
       readr::write_csv(data_out_all, file = csv_name)
     }
 
   } # end of loop over TAGS
 
-  # make sure we have one df and not a list of them
+  data_out_all <- data_out_all %>%
+    dplyr::rename(max_depth = max,
+                  dive_start_sec = start,
+                  dive_end_sec = end) %>%
+    select(-tmax)
 
   return(data_out_all)
   }
