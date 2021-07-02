@@ -51,10 +51,29 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
   data_out <- list()
 
   # loop over tags
-  for (t in c(7:length(tags))){
+  for (t in c(1:length(tags))){
     if (exists('these_dives')){
       rm(these_dives)
     }
+    if (exists('this_allclicks')){
+      rm(this_allclicks)
+    }
+    if (exists('this_data')){
+      rm(this_data)
+    }
+    if (exists('this_buzz')){
+      rm(this_buzz)
+    }
+    if (exists('this_focal_clicks')){
+      rm(this_focal_clicks)
+    }
+    if (exists('this_nf_clicks')){
+      rm(this_nf_clicks)
+    }
+    if (exists('this_events')){
+      rm(this_events)
+    }
+
     # garbage collection/free memory
     gc()
 
@@ -203,7 +222,7 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
     options(dplyr.summarise.inform = FALSE)
 
     these_dives <- these_dives %>%
-      dplyr::group_by(start, end, max, tmax, dive_dur_sec) %>%
+      dplyr::group_by(tag_id, start, end, max, tmax, dive_dur_sec) %>%
       dplyr::summarise(
         n_clicks = sum(!is.na(sec_since_tagon)),
         click_start_sec = ifelse(n_clicks > 0,
@@ -249,7 +268,8 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
     # need dive data as a dataframe
     this_depth <- add_sensor_times(this_data$depth)
 
-    if (nrow(this_focal_clicks) > 0){
+    if (nrow(this_focal_clicks) > 0 &
+        sum(these_dives$n_clicks, na.rm = TRUE) > 0){
     # join depth data and dive data so far
     these_dives_ckd <- interval_join(these_dives %>%
                                        dplyr::filter(n_clicks > 0),
@@ -332,9 +352,27 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
     # Add GPS info
       # note -- make function to turn GPS stuff into data frame?
     these_locs <- data.frame(this_data$GPS_position$data)
+    if (ncol(these_locs) < 3){
+      these_locs <- data.frame(this_data$GPS_position$sampling_rate,
+                               these_locs[1,1],
+                               these_locs[2,1])
+    }
     these_sats <- data.frame(this_data$GPS_satellites$data)
+    if (ncol(these_sats) < 2){
+      these_sats <- data.frame(this_data$GPS_satellites$sampling_rate,
+                               these_sats)
+    }
+
     these_resids <- data.frame(this_data$GPS_residual$data)
+    if (ncol(these_resids) < 2){
+      these_resids <- data.frame(this_data$GPS_residual$sampling_rate,
+                               these_resids)
+    }
     these_timeerr <- data.frame(this_data$GPS_time_error$data)
+    if (ncol(these_timeerr) < 2){
+      these_timeerr <- data.frame(this_data$GPS_time_error$sampling_rate,
+                                 these_timeerr)
+    }
 
     names(these_locs) <- c('sec_since_tagon', 'latitude', 'longitude')
     names(these_sats) <- c('sec_since_tagon', 'satellites')
@@ -429,9 +467,6 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
                                )
 
     }
-
-    # 9. Where is clicking occurring as it relates to bottom depth
-
 
     # tibble-concatenating
     data_out[[t]] <- these_dives
