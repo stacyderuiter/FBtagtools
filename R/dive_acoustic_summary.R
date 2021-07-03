@@ -51,7 +51,7 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
   data_out <- list()
 
   # loop over tags
-  for (t in c(1:length(tags))){
+  for (t in c(5:5)){ #:length(tags))){
     if (exists('these_dives')){
       rm(these_dives)
     }
@@ -219,10 +219,10 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
                                  start_x = start, end_x = end,
                                  start_y = sec_since_tagon)
 
-    options(dplyr.summarise.inform = FALSE)
 
     these_dives <- these_dives %>%
-      dplyr::group_by(tag_id, start, end, max, tmax, dive_dur_sec) %>%
+      dplyr::group_by_all() %>%
+      ungroup(click_UID, sec_since_tagon) %>%
       dplyr::summarise(
         n_clicks = sum(!is.na(sec_since_tagon)),
         click_start_sec = ifelse(n_clicks > 0,
@@ -255,10 +255,10 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
       dplyr::group_by_all() %>%
       dplyr::ungroup(sec_since_tagon, click_UID) %>%
       dplyr::summarise(
-        focal_clicks = ifelse(any(!is.na(sec_since_tagon)),
+        nonfocal_clicks = ifelse(any(!is.na(sec_since_tagon)),
                               'Present',
                               'Absent'),
-        n_focal_clicks = sum(!is.na(sec_since_tagon)),
+        n_nonfocal_clicks = sum(!is.na(sec_since_tagon)),
         nonfocal_click_UID = paste(click_UID, collapse = '|')
       )
     }
@@ -295,7 +295,7 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
     }
 
     # add info about buzzes
-    if (nrow(this_buzz) > 1){
+    if (nrow(this_buzz) > 0){
     these_dives <- interval_join(these_dives,
                                      this_buzz %>% dplyr::select(sec_since_tagon,
                                                           buzz_duration_s,
@@ -459,12 +459,18 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
     # Add bathy info
     if (!missing(bathy_path)){
       # only if bathy data are available
-      these_dives <- add_bathy(x = these_dives,
+      this_bathy <- add_bathy(x = these_dives,
                                lat_var = lat_initial,
                                lon_var = lon_initial,
                                z_radius = 2.5,
                                bathy_path = bathy_path
                                )
+
+      these_dives <- left_join(these_dives,
+                               this_bathy,
+                               by = intersect(names(these_dives),
+                                              names(this_bathy))
+      )
 
     }
 
@@ -476,6 +482,8 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
         dplyr::rename(max_depth = max,
                       dive_start_sec = start,
                       dive_end_sec = end) %>%
+        # so local times can survive csv read/write
+        dplyr::mutate(start_local = as.character(start_local)) %>%
         select(-tmax)
       readr::write_csv(data_out_all, file = csv_name)
     }
@@ -486,6 +494,8 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
     dplyr::rename(max_depth = max,
                   dive_start_sec = start,
                   dive_end_sec = end) %>%
+    # so local times can survive csv read/write
+    dplyr::mutate(start_local = as.character(start_local)) %>%
     select(-tmax)
 
   return(data_out_all)
