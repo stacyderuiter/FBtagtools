@@ -51,7 +51,7 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
   data_out <- list()
 
   # loop over tags
-  for (t in c(5:5)){ #:length(tags))){
+  for (t in c(1:length(tags))){
     if (exists('these_dives')){
       rm(these_dives)
     }
@@ -63,6 +63,9 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
     }
     if (exists('this_buzz')){
       rm(this_buzz)
+    }
+    if (exists('this_bz')){
+      rm(this_bz)
     }
     if (exists('this_focal_clicks')){
       rm(this_focal_clicks)
@@ -222,7 +225,7 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
 
     these_dives <- these_dives %>%
       dplyr::group_by_all() %>%
-      ungroup(click_UID, sec_since_tagon) %>%
+      dplyr::ungroup(click_UID, sec_since_tagon) %>%
       dplyr::summarise(
         n_clicks = sum(!is.na(sec_since_tagon)),
         click_start_sec = ifelse(n_clicks > 0,
@@ -260,7 +263,8 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
                               'Absent'),
         n_nonfocal_clicks = sum(!is.na(sec_since_tagon)),
         nonfocal_click_UID = paste(click_UID, collapse = '|')
-      )
+      ) %>%
+      dplyr::ungroup()
     }
 
 
@@ -296,17 +300,20 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
 
     # add info about buzzes
     if (nrow(this_buzz) > 0){
-    these_dives <- interval_join(these_dives,
-                                     this_buzz %>% dplyr::select(sec_since_tagon,
-                                                          buzz_duration_s,
-                                                          buzz_depth),
-                                     start_x = start,
-                                     end_x = end,
-                                     start_y = sec_since_tagon)
+      # note: this subsetting may be unneccessary -
+      # may just be that before I forgot to ungroup after the last summarize :()
+    these_dives_bz <- interval_join(these_dives %>%
+                                      dplyr::filter(n_clicks > 0) %>%
+                                      dplyr::select(start, end),
+                                 this_buzz %>% dplyr::select(sec_since_tagon,
+                                                             buzz_duration_s,
+                                                             buzz_depth),
+                                 start_x = start,
+                                 end_x = end,
+                                 start_y = sec_since_tagon)
 
-    these_dives <- these_dives %>%
-      dplyr::group_by_all() %>%
-      dplyr::ungroup(sec_since_tagon, buzz_duration_s, buzz_depth) %>%
+    these_dives_bz <- these_dives_bz %>%
+      dplyr::group_by(start, end) %>%
       dplyr::summarise(
         n_buzzes = sum(!is.na(sec_since_tagon)),
         buzz_mean_depth = mean(buzz_depth, na.rm = TRUE),
@@ -314,11 +321,22 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
         buzz_sd_depth = stats::sd(buzz_depth, na.rm = TRUE),
         buzz_iqr_depth = stats::IQR(buzz_depth, na.rm = TRUE),
         buzz_min_depth = suppressWarnings(min(buzz_depth, na.rm = TRUE)),
-        buzz_max_depth = suppressWarnings(max(buzz_depth, na.rm = TRUE))
+        buzz_max_depth = suppressWarnings(max(buzz_depth, na.rm = TRUE)),
+        buzz_mean_dur = mean(buzz_duration_s, na.rm = TRUE),
+        buzz_median_dur = stats::median(buzz_duration_s, na.rm = TRUE),
+        buzz_sd_dur = stats::sd(buzz_duration_s, na.rm = TRUE),
+        buzz_iqr_dur = stats::IQR(buzz_duration_s, na.rm = TRUE),
+        buzz_min_dur = suppressWarnings(min(buzz_duration_s, na.rm = TRUE)),
+        buzz_max_dur = suppressWarnings(max(buzz_duration_s, na.rm = TRUE))
       ) %>%
       dplyr::mutate(dplyr::across(starts_with('buzz'),
                                   ~ifelse(is.infinite(.x), NA, .x))) %>%
       dplyr::ungroup()
+
+    these_dives <- dplyr::left_join(these_dives,
+                             these_dives_bz,
+                             by = intersect(names(these_dives),
+                                            names(these_dives_bz)))
     }
 
     if (nrow(these_rls) > 0){
@@ -408,7 +426,8 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
         lon_initial = dplyr::first(longitude),
         lat_final = dplyr::last(latitude),
         lon_final = dplyr::last(longitude)
-      )
+      ) %>%
+      dplyr::ungroup()
 
     # fill in tagon location as first position
     these_dives[1, 'lat_initial'] <- ifelse(is.na(these_dives[1, 'lat_initial']),
@@ -466,7 +485,7 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
                                bathy_path = bathy_path
                                )
 
-      these_dives <- left_join(these_dives,
+      these_dives <- dplyr::left_join(these_dives,
                                this_bathy,
                                by = intersect(names(these_dives),
                                               names(this_bathy))
@@ -484,8 +503,8 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
                       dive_end_sec = end) %>%
         # so local times can survive csv read/write
         dplyr::mutate(start_local = as.character(start_local)) %>%
-        select(-tmax)
-      readr::write_csv(data_out_all, file = csv_name)
+        dplyr::select(-tmax, -start_local)
+      readr::write_csv(dout, file = csv_name)
     }
 
   } # end of loop over TAGS
@@ -496,7 +515,7 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
                   dive_end_sec = end) %>%
     # so local times can survive csv read/write
     dplyr::mutate(start_local = as.character(start_local)) %>%
-    select(-tmax)
+    dplyr::select(-tmax, -start_local)
 
   return(data_out_all)
   }
