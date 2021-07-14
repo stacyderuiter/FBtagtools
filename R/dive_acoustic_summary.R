@@ -64,6 +64,9 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
     if (exists('this_buzz')){
       rm(this_buzz)
     }
+    if (exists('these_dives_bz')){
+      rm(this_buzz)
+    }
     if (exists('this_bz')){
       rm(this_bz)
     }
@@ -108,13 +111,15 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
     if (sum(is.na(this_data$depth$data)) > 0){
       z <- tidyr::replace_na(this_data$depth$data,
                              replace = 0)
-      these_dives <- tagtools::find_dives(p = z,
+      these_dives <- find_limpet_dives(p = z,
                                           sampling_rate = this_data$depth$sampling_rate,
-                                          mindepth = 10,
+                                          mindepth = 50,
+                                          deep_dur = 30,
                                           findall = 1)
     }else{
-      these_dives <- tagtools::find_dives(p = this_data$depth,
-                                          mindepth = 10,
+      these_dives <- find_limpet_dives(p = this_data$depth,
+                                          mindepth = 50,
+                                          deep_dur = 30,
                                           findall = 1)
     }
 
@@ -299,7 +304,8 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
     }
 
     # add info about buzzes
-    if (nrow(this_buzz) > 0){
+    if (nrow(this_buzz) > 0 & 'n_clicks' %in% names(these_dives)){
+      if (sum(dplyr::pull(these_dives, n_clicks), na.rm = TRUE) > 0){
       # note: this subsetting may be unneccessary -
       # may just be that before I forgot to ungroup after the last summarize :()
     these_dives_bz <- interval_join(these_dives %>%
@@ -337,7 +343,7 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
                              these_dives_bz,
                              by = intersect(names(these_dives),
                                             names(these_dives_bz)))
-    }
+    }}
 
     if (nrow(these_rls) > 0){
 
@@ -481,7 +487,7 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
       this_bathy <- add_bathy(x = these_dives,
                                lat_var = lat_initial,
                                lon_var = lon_initial,
-                               z_radius = 2.5,
+                               z_radius = 1,
                                bathy_path = bathy_path
                                )
 
