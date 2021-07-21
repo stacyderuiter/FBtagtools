@@ -23,15 +23,15 @@ download_drive_rls <- function(rl_file = 'RLs_3obank',
 
   googledrive::drive_auth(email = email)
 
-  FB_dribble <- googledrive::team_drive_find('FreakinBeakinTagData')
+  FB_dribble <- googledrive::shared_drive_find('FreakinBeakinTagData')
 
   # will find stuff that is in other places but has tagid-cal.nc in filename
   # but is a lot slower
   rl_file_dribble <- googledrive::drive_find(pattern = paste0('*',
                                           rl_file),
                                 type = 'csv',
-                         team_drive = FB_dribble) %>%
-    googledrive::drive_reveal()
+                         shared_drive = FB_dribble) %>%
+    googledrive::drive_reveal(what = 'path')
 
   if (nrow(rl_file_dribble) > 1){
     rl_file_dribble <- rl_file_dribble %>%
@@ -54,8 +54,8 @@ download_drive_rls <- function(rl_file = 'RLs_3obank',
     ping_file_dribble <- googledrive::drive_find(pattern = paste0('*',
                                                                 ping_log_file),
                                                type = 'csv',
-                                               team_drive = FB_dribble) %>%
-      googledrive::drive_reveal()
+                                               shared_drive = FB_dribble) %>%
+      googledrive::drive_reveal(what = 'path')
 
     if (nrow(ping_file_dribble) > 1){
       ping_file_dribble <- ping_file_dribble %>%

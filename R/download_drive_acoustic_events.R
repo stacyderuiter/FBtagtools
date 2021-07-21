@@ -22,7 +22,7 @@ download_drive_acoustic_events <- function(tag_id = zc_smrt_tag_list,
 
   googledrive::drive_auth(email = email)
 
-  FB_dribble <- googledrive::team_drive_find('FreakinBeakinTagData')
+  FB_dribble <- googledrive::shared_drive_find('FreakinBeakinTagData')
 
   ae_file_dribble <- list()
 
@@ -31,8 +31,9 @@ download_drive_acoustic_events <- function(tag_id = zc_smrt_tag_list,
                                        grepl(x = tolower(type[[i]]), pattern = 'buzz') ~ '*PG_BUZZ_Events*',
                                        grepl(x = tolower(type[[i]]), pattern = 'processed') ~ '*PG_Post_Processed_Events*')
     ae_file_dribble[[i]] <- googledrive::drive_find(pattern = search_pattern,
-                                                    team_drive = FB_dribble) %>%
-      googledrive::drive_reveal() %>%
+                                                    shared_drive = FB_dribble)
+    ae_file_dribble[[i]] <- ae_file_dribble[[i]] %>%
+      googledrive::drive_reveal(what = 'path') %>%
       dplyr::mutate(type = type[[i]]) %>%
       tidyr::separate(col = name,
                into = c('tag'),
@@ -48,7 +49,7 @@ download_drive_acoustic_events <- function(tag_id = zc_smrt_tag_list,
     dplyr::filter(stringr::str_detect(name, 'csv', negate = TRUE)) %>%
     # keep only files with corrected times ('corr_times' in the name) that are in "AcousticAudits"
     dplyr::filter(stringr::str_detect(name, pattern = 'corr_times')) %>%
-    dplyr::filter(stringr::str_detect(path, 'AcousticAudits')) %>%
+    dplyr::filter(stringr::str_detect(path, 'AcousticAudit')) %>%
     dplyr::arrange(tag, name)
 
   for (f in c(1:nrow(ae_file_dribble))){

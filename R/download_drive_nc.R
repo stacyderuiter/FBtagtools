@@ -20,7 +20,7 @@ download_drive_nc <- function(tag_id = zc_smrt_tag_list,
 
   googledrive::drive_auth(email = email)
 
-  FB_dribble <- googledrive::team_drive_find('FreakinBeakinTagData')
+  FB_dribble <- googledrive::shared_drive_find('FreakinBeakinTagData')
 
   nc_files <- list()
 
@@ -33,11 +33,11 @@ download_drive_nc <- function(tag_id = zc_smrt_tag_list,
                                                    dplyr::pull(tag_id) %>%
                                                    dplyr::nth(t),
                                                  '-cal.nc'),
-                           team_drive = FB_dribble)
+                           shared_drive = FB_dribble)
   }
 
   nc_files <- dplyr::bind_rows(nc_files) %>%
-    googledrive::drive_reveal() %>%
+    googledrive::drive_reveal(what = 'path') %>%
     dplyr::filter(stringr::str_detect(path, 'OLD', negate = TRUE)) %>%
     dplyr::filter(stringr::str_detect(path, 'Old', negate = TRUE)) %>%
     dplyr::filter(stringr::str_detect(path, 'old', negate = TRUE)) %>%

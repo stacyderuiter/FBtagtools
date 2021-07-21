@@ -11,7 +11,7 @@
 #' @export
 #' @examples
 #' BW <- beaked_whale
-#' T <- find_limpet_dives(p = BW$P$data, 
+#' T <- find_limpet_dives(p = BW$P$data,
 #' sampling_rate = BW$P$sampling_rate)
 
 find_limpet_dives <- function(p, mindepth = 50, deep_dur = 30, sampling_rate = NULL, surface = 1, findall = 0) {
@@ -32,6 +32,9 @@ find_limpet_dives <- function(p, mindepth = 50, deep_dur = 30, sampling_rate = N
       stop("sampling_rate is required when p is a vector")
     }
   }
+
+  # make sure p is a vector not a matrix -- for rle()
+  p <- as.vector(p)
 
   searchlen <- 20 # how far to look in seconds to find actual surfacing
   dpthresh <- 0.25 # vertical velocity threshold for surfacing
@@ -68,7 +71,7 @@ find_limpet_dives <- function(p, mindepth = 50, deep_dur = 30, sampling_rate = N
   toff <- toff[1:k]
   # filter vertical velocity to find actual surfacing moments
   n <- round(4 * sampling_rate / dp_lp)
-  dp <- fir_nodelay(
+  dp <- tagtools::fir_nodelay(
     matrix(c(0, diff(p)), ncol = 1) * sampling_rate,
     n, dp_lp / (sampling_rate / 2)
   )
@@ -107,13 +110,13 @@ find_limpet_dives <- function(p, mindepth = 50, deep_dur = 30, sampling_rate = N
   t <- cbind(t1, t2)
   t <- matrix(t[stats::complete.cases(t)], byrow = FALSE, ncol = 4)
   T <- data.frame(
-    start = t[, 1], 
+    start = t[, 1],
     end = t[, 2],
-    max = t[, 3], 
+    max = t[, 3],
     tmax = t[, 4]
   )
-  
+
   T <- T[is_limpet == 1,]
-  
+
   return(T)
 }
