@@ -675,7 +675,8 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
         dplyr::rename(max_depth = max,
                       dive_start_sec = start,
                       dive_end_sec = end) %>%
-        dplyr::select(-tmax, -start_local)
+        dplyr::select(-tmax, -start_local) %>%
+        dplyr::mutate(start_UTC = as.character(start_UTC)) %>%
       readr::write_csv(dout, file = csv_name)
     }
 
