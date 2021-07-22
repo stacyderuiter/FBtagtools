@@ -19,16 +19,19 @@ RoxygenNote: 7.1.1
 Depends: 
     R (>= 2.10)
 Imports: 
-    googledrive,
     dplyr,
-    stringr,
-    sp,
-    readr,
-    tidyr,
-    readxl,
-    tibble,
+    googledrive,
     lubridate,
-    oce,
+    magrittr,
+    marmap,
+    oce, 
+    raster,
+    readr,
+    readxl,
+    rgdal,
     rlang,
+    sp,
+    stringr,
     swfscMisc,
-    marmap
+    tibble,
+    tidyr

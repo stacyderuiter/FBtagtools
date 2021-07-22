@@ -13,13 +13,17 @@ add_bathy <- function(x, lat_var, lon_var, z_radius = 2.5, bathy_path) {
   lat_var <- rlang::enquo(lat_var)
   lon_var <- rlang::enquo(lon_var)
 
+  # the input data is going to get drop_na'd -- let's save a copy with all original rows so we can repair it later
+  # and return results with all original rows present
+  x0 <- x
+
   if (length(z_radius) > 1) {
     if (length(z_radius) != nrow(x)) {
       stop('length of z_radius must match number of rows in x or be a single, constant radius')
     }
   }
 
-  if (!missing(bathy_path)) {
+  if (!missing(bathy_path) & !is.null(bathy_path)) {
     # Prep x
     # Remove NA positions
     x <- x %>%
@@ -129,11 +133,14 @@ add_bathy <- function(x, lat_var, lon_var, z_radius = 2.5, bathy_path) {
     x$bathy_slope <- zslope
     x$bathy_aspect <- zaspect
 
-    return(x)
-  } else { #if online == TRUE
+  } else { #if using NOAA ETOP1 online database
     # Prep x
-    LAT <- x[, which(names(x) %in% c("Latitude", "StartLat"))]
-    LON <- x[, which(names(x) %in% c("Longitude", "StartLon"))]
+    x <- x %>%
+      tidyr::drop_na(c(!!lat_var, !!lon_var))
+
+    #
+    # LAT <- x[, which(names(x) %in% c("Latitude", "StartLat"))]
+    # LON <- x[, which(names(x) %in% c("Longitude", "StartLon"))]
     if (z_radius < 2.5) {
       warning("This NOAA dataset can't use anything more precise than a radius of 2.5. If input is less than 2.5, it will be set to 2.5.")
     }
@@ -157,7 +164,10 @@ add_bathy <- function(x, lat_var, lon_var, z_radius = 2.5, bathy_path) {
         bottom <- swfscMisc::destination(lat = yi, lon = xi, brng = 180, distance = z_rad, units = "km", type = "vincenty")[1]
         left <- swfscMisc::destination(lat = yi, lon = xi, brng = 270, distance = z_rad, units = "km", type = "vincenty")[2]
         right <- swfscMisc::destination(lat = yi, lon = xi, brng = 90, distance = z_rad, units = "km", type = "vincenty")[2]
-        bath <- suppressMessages(marmap::getNOAA.bathy(lon1 = left, lon2 = right, lat1 = bottom, lat2 = top, resolution = 1, keep = FALSE, antimeridian = FALSE))
+        bath <- suppressMessages(marmap::getNOAA.bathy(lon1 = left, lon2 = right,
+                                                       lat1 = bottom, lat2 = top,
+                                                       resolution = 1, keep = FALSE,
+                                                       antimeridian = FALSE))
         bath <- marmap::as.xyz(bath)
         names(bath) <- c("x", "y", "z")
 
@@ -192,6 +202,14 @@ add_bathy <- function(x, lat_var, lon_var, z_radius = 2.5, bathy_path) {
     x$bathy_min <- zmin
     x$bathy_max <- zmax
 
-    return(x)
+
   }
+  # go back to original number of rows, with NA for bathy variables for which there are NA locs etc.
+  x <- dplyr::left_join(x0,
+                        x,
+                        by = intersect(names(x0),
+                                       names(x))
+  )
+
+  return(x)
 }
