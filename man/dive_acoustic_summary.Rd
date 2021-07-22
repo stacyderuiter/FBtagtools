@@ -9,6 +9,7 @@ dive_acoustic_summary(
   nc_path = getwd(),
   ae_path = getwd(),
   bathy_path,
+  ETOP01_bathy = FALSE,
   rl_file,
   ping_log_file,
   email,
@@ -24,6 +25,8 @@ dive_acoustic_summary(
 \item{ae_path}{Directory (quoted string) where text files with info about acoustic events are stored. If needed, you can use \code{\link[FBtagtools]{download_drive_acoustic_events}} to get these. Default is the current working directory.}
 
 \item{bathy_path}{A directory path to the folder containing all bathymetry data. Use \code{\link[FBtagtools]{download_bathy}} if you don't have this data already. If not provided, the bathymetry data will not be included in the output dataset.}
+
+\item{ETOP01_bathy}{whether to try to fill-in bathymetry info for locations outside NEPAC dataset bounds using NOAA online ETOP01 database. Default is FALSE. This is slow and no animals have gone out-of-bounds yet as of July 2021.}
 
 \item{rl_file}{name (with path, if needed) of locally-stored .csv file with raw RL data. If not provided, the default is to use \code{\link[FBtagtools]{download_drive_rls}} to obtain it from the FB Google Drive.}
 

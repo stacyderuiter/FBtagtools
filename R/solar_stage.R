@@ -12,7 +12,7 @@
 #' @examples
 #' Examples will go here
 solar_stage <- function(time, lat, long, time_zone = "America/Los_Angeles") {
-  elev <- oce::sunAngle(time, long, lat)$altitude
+  elev <- oce::sunAngle(time, long, lat, useRefraction = FALSE)$altitude
 
   stage <- dplyr::case_when(elev > 6 ~ 'Day',
                           elev < -12 ~ 'Night',

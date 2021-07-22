@@ -6,6 +6,7 @@
 #' @param nc_path Directory (quoted string) where .nc files are stored. Can be one string, or a list the same length as tag_ids. Note: to download latest versions from Google drive, try function: \code{\link[FBtagtools]{download_drive_nc}}. Default: current working directory. Note: use "/" and not "\" to avoid headaches.
 #' @param ae_path Directory (quoted string) where text files with info about acoustic events are stored. If needed, you can use \code{\link[FBtagtools]{download_drive_acoustic_events}} to get these. Default is the current working directory.
 #' @param bathy_path A directory path to the folder containing all bathymetry data. Use \code{\link[FBtagtools]{download_bathy}} if you don't have this data already. If not provided, the bathymetry data will not be included in the output dataset.
+#' @param ETOP01_bathy whether to try to fill-in bathymetry info for locations outside NEPAC dataset bounds using NOAA online ETOP01 database. Default is FALSE. This is slow and no animals have gone out-of-bounds yet as of July 2021.
 #' @param rl_file name (with path, if needed) of locally-stored .csv file with raw RL data. If not provided, the default is to use \code{\link[FBtagtools]{download_drive_rls}} to obtain it from the FB Google Drive.
 #' @param ping_log_file name (with path, if needed) of locally-stored .csv file with raw RL data. If not provided, the default is to use \code{\link[FBtagtools]{download_drive_rls}} to obtain it from the FB Google Drive.
 #' @param email Email address (required for FB Google Drive authentication; optional if `rl_file` is provided). You may also be asked to sign in or verify your Google identity as this function runs.
@@ -20,6 +21,7 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
                                   nc_path = getwd(),
                                   ae_path = getwd(),
                                   bathy_path,
+                                  ETOP01_bathy = FALSE,
                                   rl_file,
                                   ping_log_file,
                                   email,
@@ -38,20 +40,23 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
 
   if (!missing(rl_file) & !missing(ping_log_file)){
     # if RL data files already downloaded
-    all_mfa_rls <- extract_rls(rl_file = rl_file,
-                               ping_log_file = ping_log_file,
-                               save_output = FALSE)
+    all_rls <- extract_rls(rl_file = rl_file,
+                           ping_log_file = ping_log_file,
+                           signal = c('MFAS', 'Echosounder', 'Explosive'),
+                           save_output = FALSE)
   }else{
     if (missing(email)){
       stop('email is needed to download RL data from Drive')
     }
-    all_mfa_rls <- extract_rls(save_output = FALSE)
+    all_rls <- extract_rls(signal = c('MFAS', 'Echosounder', 'Explosive'),
+                           save_output = FALSE)
   }
 
   data_out <- list()
 
   # loop over tags
   for (t in c(1:length(tags))){
+    cat(paste('tag: ', t, '\n'))
     if (exists('these_dives')){
       rm(these_dives)
     }
@@ -98,12 +103,14 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
     this_data <- tagtools::load_nc(tags[t])
 
     # RLS for this whale
-    these_rls <- all_mfa_rls %>%
+    these_rls <- all_rls %>%
       dplyr::filter(TagID == tag_id[t])
 
     # Detect dives
     # record:
     #  dive duration, start, end
+
+
 
     # one whale has some missing data in sensors.
     # this will mess up find_dives
@@ -115,12 +122,12 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
                                           sampling_rate = this_data$depth$sampling_rate,
                                           mindepth = 50,
                                           deep_dur = 30,
-                                          findall = 1)
+                                          findall = TRUE)
     }else{
       these_dives <- find_limpet_dives(p = this_data$depth,
                                           mindepth = 50,
                                           deep_dur = 30,
-                                          findall = 1)
+                                          findall = TRUE)
     }
 
     these_dives <- these_dives %>%
@@ -217,20 +224,59 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
     these_dives <- these_dives %>%
       dplyr::mutate(dive_dur_sec = end - start)
 
+    these_dives <- these_dives %>%
+      dplyr::arrange(start) %>%
+      # next dive start time or, for last dive, end of that dive + 5:00
+      dplyr::mutate(next_start = c(utils::tail(start, -1),
+                            utils::tail(start, 1) + utils::tail(dive_dur_sec, 1) + 60*5),
+             # end of previous dive (set to start of record for 1st detected dive)
+             prev_end = c(0, utils::head(end, -1)))
+
+    # fill in number of breaths at each surfacing
+    # variable breath_count with event_type == 'Surf' in this_events
+    if (nrow(this_events) > 0){
+      this_events <- this_events %>%
+        dplyr::mutate(sec_since_tagon = difftime(event_start_UTC_corrected,
+                                          lubridate::dmy_hms(this_data$info$dephist_device_datetime_start),
+                                          units = 'secs'),
+               sec_since_tagon = as.numeric(sec_since_tagon)
+               )
+
+      this_surfs <- dplyr::filter(this_events,
+                                  event_type == 'Surf')
+      if (nrow(this_surfs) > 0){
+        these_dives <- interval_join(these_dives,
+                                     this_surfs %>%
+                                       dplyr::select(sec_since_tagon,
+                                                     breath_count),
+                                     start_x = start,
+                                     end_x = next_start,
+                                     start_y = sec_since_tagon
+                                     )
+
+        these_dives <- these_dives %>%
+          dplyr::group_by_all() %>%
+          dplyr::ungroup(breath_count, sec_since_tagon) %>%
+          dplyr::summarise(
+            breath_count_post_dive = sum(breath_count, na.rm = TRUE)
+          ) %>%
+          dplyr::ungroup()
+      }# end of "if there are surfacings"
+    }# end of "if there are events"
+
     # check if there is clicking in each dive; if so fill in clicking variables
     if (nrow(this_focal_clicks) > 0){
     # add focal clicks to the dive dataset (there will temp be one row per CLICK)
     these_dives <- interval_join(these_dives,
                                  this_focal_clicks %>%
-                                   dplyr::select(click_UID,
-                                                 sec_since_tagon),
+                                   dplyr::select(sec_since_tagon),
                                  start_x = start, end_x = end,
                                  start_y = sec_since_tagon)
 
 
     these_dives <- these_dives %>%
       dplyr::group_by_all() %>%
-      dplyr::ungroup(click_UID, sec_since_tagon) %>%
+      dplyr::ungroup(sec_since_tagon) %>%
       dplyr::summarise(
         n_clicks = sum(!is.na(sec_since_tagon)),
         click_start_sec = ifelse(n_clicks > 0,
@@ -244,30 +290,7 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
                                NA),
         dive_to_click1_sec = ifelse(n_clicks > 0,
                                     min(sec_since_tagon) - start,
-                                    NA),
-        focal_click_UID = paste(click_UID, collapse = '|')
-      ) %>%
-      dplyr::ungroup()
-    }
-
-    # Now add nf clicks to dataset
-    if (nrow(this_nf_clicks) > 0){
-    these_dives <- interval_join(these_dives,
-                                 this_nf_clicks %>%
-                                   dplyr::select(click_UID,
-                                                 sec_since_tagon),
-                                 start_x = start, end_x = end,
-                                 start_y = sec_since_tagon)
-
-    these_dives <- these_dives %>%
-      dplyr::group_by_all() %>%
-      dplyr::ungroup(sec_since_tagon, click_UID) %>%
-      dplyr::summarise(
-        nonfocal_clicks = ifelse(any(!is.na(sec_since_tagon)),
-                              'Present',
-                              'Absent'),
-        n_nonfocal_clicks = sum(!is.na(sec_since_tagon)),
-        nonfocal_click_UID = paste(click_UID, collapse = '|')
+                                    NA)
       ) %>%
       dplyr::ungroup()
     }
@@ -302,6 +325,64 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
                                     by = intersect(names(these_dives),
                                                    names(these_dives_ckd)))
     }
+
+    # Now add nf clicks to dataset
+    if (nrow(this_nf_clicks) > 0){
+      these_dives <- interval_join(these_dives,
+                                   this_nf_clicks %>%
+                                     dplyr::select(sec_since_tagon),
+                                   start_x = start, end_x = end,
+                                   start_y = sec_since_tagon)
+
+      these_dives <- these_dives %>%
+        dplyr::group_by_all() %>%
+        dplyr::ungroup(sec_since_tagon) %>%
+        dplyr::summarise(
+          nonfocal_clicks = ifelse(any(!is.na(sec_since_tagon)),
+                                   'Present',
+                                   'Absent'),
+          n_nonfocal_clicks = sum(!is.na(sec_since_tagon)),
+          # nonfocal_click_UID = paste(click_UID, collapse = '|') # removing b/c excel has a cell size limit and adds LINE BREAKS if you exceed it!
+          nonfocal_click_start_sec = ifelse(n_nonfocal_clicks > 0,
+                                            min(sec_since_tagon, na.rm = TRUE),
+                                            NA),
+          nonfocal_click_end_sec = ifelse(n_nonfocal_clicks > 0,
+                                          max(sec_since_tagon, na.rm = TRUE),
+                                          NA)
+        ) %>%
+        dplyr::ungroup()
+    }
+
+    # Add info about NONFOCAL clicking depths
+
+    if (nrow(this_nf_clicks) > 0 &
+        sum(these_dives$n_nonfocal_clicks, na.rm = TRUE) > 0){
+      # join depth data and dive data so far during nf click periods
+      rm(these_dives_ckd)
+      these_dives_ckd <- interval_join(these_dives %>%
+                                         dplyr::filter(n_nonfocal_clicks > 0),
+                                       this_depth,
+                                       start_x = nonfocal_click_start_sec,
+                                       end_x = nonfocal_click_end_sec,
+                                       start_y = sec_since_tagon)
+
+      these_dives_ckd <- these_dives_ckd %>%
+        dplyr::group_by_all() %>%
+        dplyr::ungroup(dive_depth, sec_since_tagon) %>%
+        dplyr::summarise(
+          nonfocal_click_start_depth = dplyr::first(dive_depth),
+          nonfocal_click_end_depth = dplyr::last(dive_depth),
+          nonfocal_click_min_depth = min(dive_depth, na.rm = TRUE),
+          nonfocal_click_max_depth = max(dive_depth, na.rm = TRUE)
+        ) %>%
+        dplyr::ungroup()
+
+      these_dives <- dplyr::left_join(these_dives, these_dives_ckd,
+                                      by = intersect(names(these_dives),
+                                                     names(these_dives_ckd)))
+    }
+
+
 
     # add info about buzzes
     if (nrow(this_buzz) > 0 & 'n_clicks' %in% names(these_dives)){
@@ -348,54 +429,81 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
     if (nrow(these_rls) > 0){
 
     # Add RLs to dataset
+      # need to edit so not just mfa, also echo and explos
     these_dives <- interval_join(these_dives,
                                  these_rls %>% dplyr::select(sec_since_tagon,
-                                                      BB_RMS),
+                                                             duration,
+                                                      BB_RMS, Type) %>%
+                                   dplyr::rename(ping_duration = duration),
                                  start_x = start,
                                  end_x = end,
                                  start_y = sec_since_tagon)
 
     these_dives <- these_dives %>%
-      dplyr::group_by_all() %>%
-      dplyr::ungroup(sec_since_tagon, BB_RMS) %>%
+      dplyr::group_by_all() %>% # includes groups by signal Type
+      dplyr::ungroup(sec_since_tagon, BB_RMS, ping_duration) %>%
       dplyr::summarise(
-        n_mfa_pings = sum(!is.na(sec_since_tagon)),
-        mfa_bb_rms_min = min(BB_RMS, na.rm = TRUE),
-        mfa_bb_rms_min = max(BB_RMS, na.rm = TRUE),
-        mfa_bb_rms_median = median(BB_RMS, na.rm = TRUE),
-        mfa_bb_rms_mean = suppressWarnings(10 * log10(mean(10 ^ (na.omit(BB_RMS) / 10)))),
-        mfa_bb_rms_mean = ifelse(is.infinite(mfa_bb_rms_mean) |
-                                   is.na(mfa_bb_rms_mean),
+        n_pings = sum(!is.na(sec_since_tagon)),
+        ping_dur_mean_sec = mean(ping_duration, na.rm = TRUE),
+        ping_dur_min_sec = min(ping_duration, na.rm = TRUE),
+        ping_dur_max_sec = max(ping_duration, na.rm = TRUE),
+        bb_rms_min = min(BB_RMS, na.rm = TRUE),
+        bb_rms_max = max(BB_RMS, na.rm = TRUE),
+        bb_rms_median = median(BB_RMS, na.rm = TRUE),
+        bb_rms_mean = suppressWarnings(10 * log10(mean(10 ^ (na.omit(BB_RMS) / 10)))),
+        bb_rms_mean = ifelse(is.infinite(bb_rms_mean) |
+                                   is.na(bb_rms_mean),
                                  NA,
-                                 mfa_bb_rms_mean))   %>%
-      dplyr::mutate(dplyr::across(starts_with('mfa'),
-                                      ~ifelse(is.infinite(.x), NA, .x))) %>%
-      dplyr::ungroup()
+                                 bb_rms_mean))   %>%
+      dplyr::ungroup() %>%
+      dplyr::mutate(Type = tolower(Type)) %>%
+      tidyr::pivot_wider(names_from = Type,
+                         values_from = c(n_pings,
+                                         ping_dur_mean_sec,
+                                         ping_dur_min_sec,
+                                         ping_dur_max_sec,
+                                         bb_rms_min,
+                                         bb_rms_max,
+                                         bb_rms_median,
+                                         bb_rms_mean),
+                         names_glue = "{Type}_{.value}" # put the mfa_ echo_ etc. FIRST not last
+                       ) %>%
+      # if there are no non-missing RLs then some of the results will be Inf instead of missing
+      # but they should just be missing
+      dplyr::select(!tidyselect::starts_with('NA_')) %>%
+      dplyr::mutate(dplyr::across(contains('mfa') | contains('echosounder') | contains('explos'),
+                                      ~ifelse(is.infinite(.x), NA, .x)))
     }
 
     # Add GPS info
       # note -- make function to turn GPS stuff into data frame?
     these_locs <- data.frame(this_data$GPS_position$data)
+
     if (ncol(these_locs) < 3){
-      these_locs <- data.frame(this_data$GPS_position$sampling_rate,
-                               these_locs[1,1],
-                               these_locs[2,1])
+    #   these_locs <- data.frame(this_data$GPS_position$sampling_rate,
+      #                            these_locs[1,1],
+      #                            these_locs[2,1])
+      these_locs <- data.frame(t(this_data$GPS_position$data))
     }
+
     these_sats <- data.frame(this_data$GPS_satellites$data)
     if (ncol(these_sats) < 2){
-      these_sats <- data.frame(this_data$GPS_satellites$sampling_rate,
-                               these_sats)
+      # these_sats <- data.frame(this_data$GPS_satellites$sampling_rate,
+      # these_sats)
+      these_sats <- data.frame(t(this_data$GPS_satellites$data))
     }
 
     these_resids <- data.frame(this_data$GPS_residual$data)
     if (ncol(these_resids) < 2){
-      these_resids <- data.frame(this_data$GPS_residual$sampling_rate,
-                               these_resids)
+      # these_resids <- data.frame(this_data$GPS_residual$sampling_rate,
+      #                          these_resids)
+      these_resids <- data.frame(t(this_data$GPS_residual$data))
     }
     these_timeerr <- data.frame(this_data$GPS_time_error$data)
     if (ncol(these_timeerr) < 2){
-      these_timeerr <- data.frame(this_data$GPS_time_error$sampling_rate,
-                                 these_timeerr)
+      # these_timeerr <- data.frame(this_data$GPS_time_error$sampling_rate,
+      #                            these_timeerr)
+      these_timeerr <- data.frame(t(this_data$GPS_time_error$data))
     }
 
     names(these_locs) <- c('sec_since_tagon', 'latitude', 'longitude')
@@ -418,30 +526,58 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
       dplyr::filter(sec_since_tagon < max(dplyr::pull(these_dives, end), na.rm = TRUE))
 
     # add in all locs DURING the dive
+    # find the ones that are SINCE the end of the last (prev_end) and
+    # BEFORE next_start
+
+    these_dives <- these_dives %>%
+      dplyr::mutate(next_start100 = next_start+100,
+                    end100 = end - 100,
+                    prev_end100 = ifelse(prev_end - 100 < 0, 0, prev_end - 100))
+
+    # first get all the positions from [END of last dive - 100sec] to [100 sec before the end of this one]
     these_dives <- suppressWarnings(interval_join(these_dives,
                                  these_locs,
-                                 start_x = start,
-                                 end_x = end,
+                                 start_x = prev_end100,
+                                 end_x = end100,
                                  start_y = sec_since_tagon))
 
     these_dives <- these_dives %>%
       dplyr::group_by_all() %>%
       dplyr::ungroup(sec_since_tagon, latitude, longitude) %>%
+      dplyr::arrange(sec_since_tagon) %>%
       dplyr::summarise(
-        lat_initial = dplyr::first(latitude),
-        lon_initial = dplyr::first(longitude),
-        lat_final = dplyr::last(latitude),
-        lon_final = dplyr::last(longitude)
+        lat_initial = dplyr::last(latitude),
+        lon_initial = dplyr::last(longitude),
+        initial_loc_time = dplyr::last(sec_since_tagon)
       ) %>%
       dplyr::ungroup()
 
+    # then get all the positions from [END of this dive - 100sec] to [start of next + 100sec]
+    these_dives <- suppressWarnings(interval_join(these_dives,
+                                                  these_locs,
+                                                  start_x = end100,
+                                                  end_x = next_start100,
+                                                  start_y = sec_since_tagon))
+
+    these_dives <- these_dives %>%
+      dplyr::group_by_all() %>%
+      dplyr::ungroup(sec_since_tagon, latitude, longitude) %>%
+      dplyr::arrange(sec_since_tagon) %>%
+      dplyr::summarise(
+        lat_final = dplyr::first(latitude),
+        lon_final = dplyr::first(longitude),
+        final_loc_time = dplyr::first(sec_since_tagon)
+      ) %>%
+      dplyr::ungroup() %>%
+      dplyr::select(!tidyselect::ends_with('100'))
+
     # fill in tagon location as first position
     these_dives[1, 'lat_initial'] <- ifelse(is.na(these_dives[1, 'lat_initial']),
-                                            this_data$info$dephist_deploy_location_lat,
+                                            as.numeric(this_data$info$dephist_deploy_location_lat),
                                             these_dives[1, 'lat_initial'])
 
     these_dives[1, 'lon_initial'] <- ifelse(is.na(these_dives[1, 'lon_initial']),
-                                            this_data$info$dephist_deploy_location_lon,
+                                            as.numeric(this_data$info$dephist_deploy_location_lon),
                                             these_dives[1, 'lon_initial'])
 
     # locations will be NA if there was no position that dive so fill in with "last known" posn
@@ -452,7 +588,11 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
       tidyr::fill(lat_last_known,
                   .direction = 'down') %>%
       tidyr::fill(lon_last_known,
-                  .direction = 'down')
+                  .direction = 'down') %>%
+      tidyr::fill(lat_last_known,
+                  .direction = 'up') %>%
+      tidyr::fill(lon_last_known,
+                  .direction = 'up')
 
 
 
@@ -466,38 +606,64 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
     these_dives <- these_dives %>%
       dplyr::mutate(solar_phase = solar_stage(start_UTC,
                                             lat = lat_last_known,
-                                            lon = lon_last_known))
+                                            long = lon_last_known))
 
 
     # add distance traveled during foraging
     these_dives <- these_dives %>%
       dplyr::mutate(distance_traveled_km = oce::geodDist(latitude1 = dplyr::pull(these_dives, lat_initial),
-                                                 latitude2 = c(dplyr::pull(these_dives, lat_initial) %>%
-                                                   utils::tail(-1),
-                                                   dplyr::pull(these_dives, lat_initial) %>%
-                                                     dplyr::last()),
-                                                 longitude1 = lon_initial,
-                                                 longitude2 = c(dplyr::pull(these_dives, lon_initial) %>%
-                                                                  utils::tail(-1),
-                                                                dplyr::pull(these_dives, lon_initial) %>%
-                                                                  dplyr::last())))
+                                                 latitude2 = dplyr::pull(these_dives, lat_final),
+                                                 longitude1 = dplyr::pull(these_dives, lon_initial),
+                                                 longitude2 = dplyr::pull(these_dives, lon_final)))
+
+    # add speed
+    these_dives <- these_dives %>%
+      dplyr::mutate(horiz_speed_km_h = distance_traveled_km / (dive_dur_sec / 3600))
+
     # Add bathy info
     if (!missing(bathy_path)){
       # only if bathy data are available
-      this_bathy <- add_bathy(x = these_dives,
+      these_dives_fine <- add_bathy(x = these_dives,
                                lat_var = lat_initial,
                                lon_var = lon_initial,
                                z_radius = 1,
                                bathy_path = bathy_path
-                               )
+                               ) %>%
+        dplyr::mutate(bathy_source = 'NEPAC',
+                      bathy_radius_km = 1)
 
-      these_dives <- dplyr::left_join(these_dives,
-                               this_bathy,
-                               by = intersect(names(these_dives),
-                                              names(this_bathy))
-      )
+      if (ETOP01_bathy){
+        # if using NOAA ETOP01 bathymetry data for backup if whale went out of fine-scale NEPAC bounds
+        # the idea is the _fine bathy will be NA if out of bounds, but I think add_bathy() might actually error
+        # if so add_bathy will need updating if this part is to be used
+      these_dives_coarse <- add_bathy(x = these_dives,
+                                    lat_var = lat_initial,
+                                    lon_var = lon_initial,
+                                    z_radius = 5, # note marmap package ref says can use z_radius 2.5 but it actually throws errors if <3.5
+                                    bathy_path = NULL # use NOAA online data
+      ) %>%
+        dplyr::select(bathy, bathy_slope, bathy_aspect, bathy_n, bathy_min, bathy_max)
 
-    }
+      names(these_dives_coarse) <- paste0('coarse_', names(these_dives_coarse))
+
+      these_dives <- dplyr::bind_cols(these_dives_fine, these_dives_coarse) %>%
+        dplyr::mutate(bathy_slope = ifelse(is.na(bathy), coarse_bathy_slope, bathy_slope),
+                      bathy_aspect = ifelse(is.na(bathy), coarse_bathy_aspect, bathy_aspect),
+                      bathy_n = ifelse(is.na(bathy), coarse_bathy_n, bathy_n),
+                      bathy_min = ifelse(is.na(bathy), coarse_bathy_min, bathy_min),
+                      bathy_max = ifelse(is.na(bathy), coarse_bathy_max, bathy_max),
+                      bathy_source = ifelse(is.na(bathy), 'NOAA ETOPO1', bathy_source),
+                      bathy_radius_km = ifelse(is.na(bathy), 5, bathy_radius_km),
+                      bathy = ifelse(is.na(bathy), coarse_bathy, bathy)
+                      ) %>%
+        dplyr::select(!contains('coarse_')) #remove "coarse" variables
+
+      rm(these_dives_coarse, these_dives_fine)
+      gc()
+      }else{
+        these_dives <- these_dives_fine
+      }
+   }
 
     # tibble-concatenating
     data_out[[t]] <- these_dives
@@ -507,8 +673,6 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
         dplyr::rename(max_depth = max,
                       dive_start_sec = start,
                       dive_end_sec = end) %>%
-        # so local times can survive csv read/write
-        dplyr::mutate(start_local = as.character(start_local)) %>%
         dplyr::select(-tmax, -start_local)
       readr::write_csv(dout, file = csv_name)
     }
@@ -519,9 +683,7 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
     dplyr::rename(max_depth = max,
                   dive_start_sec = start,
                   dive_end_sec = end) %>%
-    # so local times can survive csv read/write
-    dplyr::mutate(start_local = as.character(start_local)) %>%
-    dplyr::select(-tmax, -start_local)
+    dplyr::select(-tmax, -start_local, -lat_last_known, -lon_last_known) #, -prev_end, -next_start)
 
   return(data_out_all)
   }
