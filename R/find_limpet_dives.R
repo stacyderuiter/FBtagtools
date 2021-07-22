@@ -6,7 +6,7 @@
 #' @param mindepth The threshold in meters at which to recognize a dive or flight. Dives shallow or flights lower than mindepth will be ignored. Default is 50 m
 #' @param deep_dur The amount of time (in seconds) the whale must spend at depths greater than mindepth, for it to be considered a dive. Default is 30 seconds.
 #' @param surface (optional) The threshold in meters at which the animal is presumed to have reached the surface. Default value is 1. A smaller value can be used if the dive/altitude data are very accurate and you need to detect shallow dives/flights.
-#' @param findall (optional) When 1, forces the algorithm to include incomplete dives at the start and end of the record. Default is 0 which only recognizes complete dives.
+#' @param findall (optional) When TRUE, forces the algorithm to include incomplete dives at the start and end of the record. Default is FALSE which only recognizes complete dives.
 #' @return T is a data frame with one row for each dive/flight found. The columns of T are: start (time in seconds of the start of each dive/flight), end (time in seconds of the start of each dive/flight), max (maximum depth/altitude reached in each dive/flight), tmax	(time in seconds at which the animal reaches the max depth/altitude).
 #' @export
 #' @examples
@@ -14,7 +14,7 @@
 #' T <- find_limpet_dives(p = BW$P$data,
 #' sampling_rate = BW$P$sampling_rate)
 
-find_limpet_dives <- function(p, mindepth = 50, deep_dur = 30, sampling_rate = NULL, surface = 1, findall = 0) {
+find_limpet_dives <- function(p, mindepth = 50, deep_dur = 30, sampling_rate = NULL, surface = 1, findall = FALSE) {
   if (nargs() < 2) {
     stop("inputs for p and mindepth are required")
   }
@@ -40,6 +40,9 @@ find_limpet_dives <- function(p, mindepth = 50, deep_dur = 30, sampling_rate = N
   dpthresh <- 0.25 # vertical velocity threshold for surfacing
   dp_lp <- 0.25 # low-pass filter frequency for vertical velocity
   # find threshold crossings and surface times
+  # hack for case where first depth obs is > mindepth
+  if (p[1] > mindepth){p[1] <- mindepth - 0.25}
+
   tth <- which(diff(p > mindepth) > 0)
   tsurf <- which(p < surface)
   ton <- 0 * tth
@@ -51,7 +54,7 @@ find_limpet_dives <- function(p, mindepth = 50, deep_dur = 30, sampling_rate = N
     if (all(tth[kth] > toff)) {
       ks0 <- which(tsurf < tth[kth])
       ks1 <- which(tsurf > tth[kth])
-      if (!missing(findall) | ((!identical(ks0, empty)) & (!identical(ks1, empty)))) {
+      if ( findall || ((!identical(ks0, empty)) && (!identical(ks1, empty)))) {
         k <- k + 1
         if (identical(ks0, empty)) {
           ton[k] <- 1
