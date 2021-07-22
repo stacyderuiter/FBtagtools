@@ -618,7 +618,9 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
 
     # add speed
     these_dives <- these_dives %>%
-      dplyr::mutate(horiz_speed_km_h = distance_traveled_km / (dive_dur_sec / 3600))
+      dplyr::mutate(horiz_speed_km_h = distance_traveled_km / ((final_loc_time - initial_loc_time) / 3600))
+    these_dives <- these_dives %>%
+      dplyr::mutate(horiz_speed_km_h = ifelse(is.infinite(horiz_speed_km_h, 0, horiz_speed_km_h)))
 
     # Add bathy info
     if (!missing(bathy_path)){
