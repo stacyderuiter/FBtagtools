@@ -17,14 +17,14 @@
 #' @examples
 #' Examples will go here
 interval_join <- function(x, y, start_x, start_y,
-                          end_x = start_x, end_y = NULL,
+                          end_x = start_x, end_y,
                           suffix = c("", ".new"),
                           ..., keep = FALSE){
     start_x = rlang::enquo(start_x)
     end_x = rlang::enquo(end_x)
     start_y = rlang::enquo(start_y)
 
-    if (is.null(end_y)) {
+    if (missing(end_y)) {
       end_y = start_y
     } else {
       end_y = rlang::enquo(end_y)
@@ -42,7 +42,7 @@ interval_join <- function(x, y, start_x, start_y,
       dplyr::mutate(..index..  = ..index1..) %>%
       dplyr::filter(..index1.. == ..index2..)
 
-    # start of new bit
+    # # start of new bit
     # y <- y %>%
     #         dplyr::mutate(
     #           ..index1.. =
@@ -55,9 +55,9 @@ interval_join <- function(x, y, start_x, start_y,
     #                          rightmost.closed = TRUE),
     #           ..index..  =
     #             ..index1..)
-
+    #
     # y <- y %>% dplyr::filter(..index1.. == ..index2.. + 1)
-    # end of new bit
+    # # end of new bit
 
     dplyr::left_join(x, y, by = "..index..",
                      na_matches = "never") %>%

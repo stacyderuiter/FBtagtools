@@ -523,23 +523,23 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
       dplyr::select(sec_since_tagon,
                     latitude,
                     longitude) %>%
-      dplyr::filter(sec_since_tagon < max(dplyr::pull(these_dives, end), na.rm = TRUE))
-
-    # add in all locs DURING the dive
-    # find the ones that are SINCE the end of the last (prev_end) and
-    # BEFORE next_start
+      dplyr::filter(sec_since_tagon < max(dplyr::pull(these_dives, end) + 615, na.rm = TRUE)) %>%
+      tidyr::drop_na(latitude, longitude)
 
     these_dives <- these_dives %>%
-      dplyr::mutate(next_start100 = next_start+100,
-                    end100 = end - 100,
-                    prev_end100 = ifelse(prev_end - 100 < 0, 0, prev_end - 100))
+      dplyr::mutate(start_plus_60 = start + 60,
+                    next_start_plus_60 = next_start + 60,
+                    end_minus_60 = end - 60
+                    )
 
-    # first get all the positions from [END of last dive - 100sec] to [100 sec before the end of this one]
-    these_dives <- suppressWarnings(interval_join(these_dives,
-                                 these_locs,
-                                 start_x = prev_end100,
-                                 end_x = end100,
-                                 start_y = sec_since_tagon))
+    # add in all locs DURING the dive
+# note: each event must match only one time period or interval-join fails.
+    these_dives <- suppressWarnings(interval_join(x = these_dives,
+                                 y = these_locs,
+                                 start_x = prev_end,
+                                 end_x = start_plus_60,
+                                 start_y = sec_since_tagon,
+                                 end_y = sec_since_tagon))
 
     these_dives <- these_dives %>%
       dplyr::group_by_all() %>%
@@ -552,11 +552,27 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
       ) %>%
       dplyr::ungroup()
 
-    # then get all the positions from [END of this dive - 100sec] to [start of next + 100sec]
+    # now try to fill in: if lat_initial is NA, look for one 10:00 or less before dive start.
+    for (d in c(1:nrow(these_dives))){
+      if (is.na(these_dives$lat_initial %>% dplyr::nth(d))){
+        ds <- these_dives$start %>% dplyr::nth(d)
+        pre_posn_ix <- utils::tail(which(ds - these_locs$sec_since_tagon > 0),1)
+        # if there is a prev posn and its time is less than 10 minutes ago
+        if (!purrr::is_empty(pre_posn_ix)){
+          if (ds - these_locs[pre_posn_ix, 'sec_since_tagon'] < 600){
+            these_dives[d, 'lat_initial'] <- these_locs[pre_posn_ix, 'latitude']
+            these_dives[d, 'lon_initial'] <- these_locs[pre_posn_ix, 'longitude']
+            these_dives[d, 'initial_loc_time'] <- these_locs[pre_posn_ix, 'sec_since_tagon']
+          }
+        }
+      }
+    }
+
+    # then get all the positions from end of this dive to [start of next]
     these_dives <- suppressWarnings(interval_join(these_dives,
                                                   these_locs,
-                                                  start_x = end100,
-                                                  end_x = next_start100,
+                                                  start_x = end_minus_60,
+                                                  end_x = next_start_plus_60,
                                                   start_y = sec_since_tagon))
 
     these_dives <- these_dives %>%
@@ -568,10 +584,30 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
         lon_final = dplyr::first(longitude),
         final_loc_time = dplyr::first(sec_since_tagon)
       ) %>%
-      dplyr::ungroup() %>%
-      dplyr::select(!tidyselect::ends_with('100'))
+      dplyr::ungroup()  %>%
+      dplyr::select(!tidyselect::ends_with('60'))
+
+    # now try to fill in: if lat_final is NA, look for one 10:00 or less after dive end (or 30 sec before dive end).
+    for (d in c(1:nrow(these_dives))){
+      if (is.na(these_dives$lat_final %>% dplyr::nth(d))){
+        de <- (these_dives$end %>% dplyr::nth(d)) - 30
+        post_posn_ix <- utils::head(which(these_locs$sec_since_tagon - de > 0),1)
+        # if there is a post posn and its time is less than 10 minutes ago
+        if (!purrr::is_empty(post_posn_ix)){
+          if (these_locs[post_posn_ix, 'sec_since_tagon'] - de < 600){
+            these_dives[d, 'lat_final'] <- these_locs[post_posn_ix, 'latitude']
+            these_dives[d, 'lon_final'] <- these_locs[post_posn_ix, 'longitude']
+            these_dives[d, 'final_loc_time'] <- these_locs[post_posn_ix, 'sec_since_tagon']
+          }
+        }
+      }
+    }
 
     # fill in tagon location as first position
+    these_dives[1, 'initial_loc_time'] <- ifelse(is.na(these_dives[1, 'initial_loc_time']),
+                                            0,
+                                            these_dives[1, 'initial_loc_time'])
+
     these_dives[1, 'lat_initial'] <- ifelse(is.na(these_dives[1, 'lat_initial']),
                                             as.numeric(this_data$info$dephist_deploy_location_lat),
                                             these_dives[1, 'lat_initial'])
@@ -618,7 +654,7 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
 
     # add speed
     these_dives <- these_dives %>%
-      dplyr::mutate(horiz_speed_km_h = distance_traveled_km / ((final_loc_time - initial_loc_time) / 3600))
+      dplyr::mutate(horiz_speed_km_h = distance_traveled_km / ((final_loc_time - initial_loc_time) / 3615))
     these_dives <- these_dives %>%
       dplyr::mutate(horiz_speed_km_h = ifelse(is.infinite(horiz_speed_km_h), 0, horiz_speed_km_h))
 
@@ -676,7 +712,7 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
                       dive_start_sec = start,
                       dive_end_sec = end) %>%
         dplyr::select(-tmax, -start_local) %>%
-        dplyr::mutate(start_UTC = as.character(start_UTC)) %>%
+        dplyr::mutate(start_UTC = as.character(start_UTC))
       readr::write_csv(dout, file = csv_name)
     }
 
