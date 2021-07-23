@@ -519,7 +519,18 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
       dplyr::filter(time_error < 3 &
                       time_error > -3 &
                       residual < 35 &
-                      satellites >= 4) %>%
+                      satellites >= 4)
+
+    if (t == 1){
+      all_locs <- these_locs
+      all_locs$tag = tag_id[t]
+    }else{
+      these_locs <- these_locs %>% mutate(tag = tag_id[t])
+      all_locs <- bind_rows(all_locs, these_locs)
+    }
+    write_csv(all_locs, file = 'all_GPS_data.csv')
+
+    these_locs <- these_locs %>%
       dplyr::select(sec_since_tagon,
                     latitude,
                     longitude) %>%
@@ -537,7 +548,7 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
     these_dives <- suppressWarnings(interval_join(x = these_dives,
                                  y = these_locs,
                                  start_x = prev_end,
-                                 end_x = start_plus_60,
+                                 end_x = start,
                                  start_y = sec_since_tagon,
                                  end_y = sec_since_tagon))
 
@@ -559,7 +570,7 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
         pre_posn_ix <- utils::tail(which(ds - these_locs$sec_since_tagon > 0),1)
         # if there is a prev posn and its time is less than 10 minutes ago
         if (!purrr::is_empty(pre_posn_ix)){
-          if (ds - these_locs[pre_posn_ix, 'sec_since_tagon'] < 600){
+          if (ds - these_locs[pre_posn_ix, 'sec_since_tagon'] < 900){
             these_dives[d, 'lat_initial'] <- these_locs[pre_posn_ix, 'latitude']
             these_dives[d, 'lon_initial'] <- these_locs[pre_posn_ix, 'longitude']
             these_dives[d, 'initial_loc_time'] <- these_locs[pre_posn_ix, 'sec_since_tagon']
@@ -571,8 +582,8 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
     # then get all the positions from end of this dive to [start of next]
     these_dives <- suppressWarnings(interval_join(these_dives,
                                                   these_locs,
-                                                  start_x = end_minus_60,
-                                                  end_x = next_start_plus_60,
+                                                  start_x = end,
+                                                  end_x = next_start,
                                                   start_y = sec_since_tagon))
 
     these_dives <- these_dives %>%
@@ -594,7 +605,7 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
         post_posn_ix <- utils::head(which(these_locs$sec_since_tagon - de > 0),1)
         # if there is a post posn and its time is less than 10 minutes ago
         if (!purrr::is_empty(post_posn_ix)){
-          if (these_locs[post_posn_ix, 'sec_since_tagon'] - de < 600){
+          if (these_locs[post_posn_ix, 'sec_since_tagon'] - de < 900){
             these_dives[d, 'lat_final'] <- these_locs[post_posn_ix, 'latitude']
             these_dives[d, 'lon_final'] <- these_locs[post_posn_ix, 'longitude']
             these_dives[d, 'final_loc_time'] <- these_locs[post_posn_ix, 'sec_since_tagon']
