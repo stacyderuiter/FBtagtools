@@ -75,7 +75,7 @@ download_drive_rls <- function(rl_file = 'RLs_3obank',
                                                    dplyr::first()),
                                 overwrite = overwrite)
 
-  return(bind_rows(rl_file_dribble, ping_file_dribble))
+  return(dplyr::bind_rows(rl_file_dribble, ping_file_dribble))
 
 
   }

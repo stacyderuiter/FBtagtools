@@ -78,7 +78,7 @@ add_bathy <- function(x, lat_var, lon_var, z_radius = 2.5, bathy_path) {
     zdf <- data.frame()
     for (i in 1:length(toload)) {
       zfile <- paste0(bathy_path, '/', lf[toload[i]])
-      zi <- read.csv(zfile, header = TRUE)
+      zi <- utils::read.csv(zfile, header = TRUE)
       zi <- zi[zi$z < 0,]
       zdf <- rbind(zdf, zi)
     }

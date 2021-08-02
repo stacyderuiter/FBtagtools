@@ -10,7 +10,7 @@ interval_join(
   start_x,
   start_y,
   end_x = start_x,
-  end_y = NULL,
+  end_y,
   suffix = c("", ".new"),
   ...,
   keep = FALSE

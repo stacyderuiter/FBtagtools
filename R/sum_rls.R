@@ -11,10 +11,10 @@
 sum_rls <- function(rls,
                     energy = FALSE){
   if (!energy){
-    rls <- na.omit(rls)
+    rls <- stats::na.omit(rls)
     10 * log10( sum(10 ^ (rls / 10)))
   }else{
-    rls <- na.omit(rls)
+    rls <- stats::na.omit(rls)
     20 * log10( sum(10 ^ (rls / 20)))
   }
 }
