@@ -1,3 +1,7 @@
 template:
   params:
     bootswatch: flatly
+    docsearch:
+      api_key: API_KEY
+      index_name: INDEX_NAME
+url: https://stacyderuiter.github.io/FBtagtools

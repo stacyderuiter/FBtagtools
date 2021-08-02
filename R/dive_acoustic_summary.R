@@ -525,10 +525,10 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
       all_locs <- these_locs
       all_locs$tag = tag_id[t]
     }else{
-      these_locs <- these_locs %>% mutate(tag = tag_id[t])
+      these_locs <- these_locs %>% dplyr::mutate(tag = tag_id[t])
       all_locs <- bind_rows(all_locs, these_locs)
     }
-    write_csv(all_locs, file = 'all_GPS_data.csv')
+    readr::write_csv(all_locs, file = 'all_GPS_data.csv')
 
     these_locs <- these_locs %>%
       dplyr::select(sec_since_tagon,
