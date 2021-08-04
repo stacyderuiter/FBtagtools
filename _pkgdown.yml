@@ -2,6 +2,6 @@ template:
   params:
     bootswatch: flatly
     docsearch:
-      api_key: '9272635e58f3e1aca2214dd7e171f354'
+      api_key: '9272635e58f3e1aca2214dd7e171f354'git add
       index_name: 'FBtagtools'
 url: https://stacyderuiter.github.io/FBtagtools
