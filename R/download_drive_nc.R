@@ -8,8 +8,6 @@
 #' @param email Email address (for FB Google Drive authentication). You may also be asked to sign in or verify your Google identity as this function runs.
 #' @return Returns a "dribble" with information about the files and their location on google drive. (The function also downloads the requested files, of course.)
 #' @export
-#' @examples
-#' download_drive_nc(email = "sld33@calvin.edu") # (this only works if you know sld33's password...)
 download_drive_nc <- function(tag_id = zc_smrt_tag_list,
                                   path = getwd(),
                               email,

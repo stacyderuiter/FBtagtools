@@ -9,8 +9,6 @@
 #' @param type The types of acoustic events files to find and download. Options are one or more of: 'AllClicks', 'Buzzes', 'PostProcessedEvents'. Default is all three.
 #' @return Returns a "dribble" with information about the files and their location on google drive. (The function also downloads the requested files, of course.)
 #' @export
-#' @examples
-#' download_drive_nc(email = "sld33@calvin.edu") # (this only works if you know sld33's password...)
 download_drive_acoustic_events <- function(tag_id = zc_smrt_tag_list,
                                   ae_path = getwd(),
                               email,

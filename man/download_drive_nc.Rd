@@ -26,6 +26,3 @@ Returns a "dribble" with information about the files and their location on googl
 \description{
 Default is to download all Ziphius SMRT tag datasets (or you can specify the tag(s) for which you want to download data). Data are downloaded from the FB project shared Google Drive.
 }
-\examples{
-download_drive_nc(email = "sld33@calvin.edu") # (this only works if you know sld33's password...)
-}

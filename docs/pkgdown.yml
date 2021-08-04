@@ -2,5 +2,8 @@ pandoc: 2.11.4
 pkgdown: 1.6.1
 pkgdown_sha: ~
 articles: {}
-last_built: 2021-07-28T19:45Z
+last_built: 2021-08-04T20:23Z
+urls:
+  reference: https://stacyderuiter.github.io/FBtagtools/reference
+  article: https://stacyderuiter.github.io/FBtagtools/articles
 

@@ -10,8 +10,6 @@
 #' @return Returns a "dribble" with information about the files and their location on google drive. (The function also downloads the requested files, of course.)
 #' @importFrom magrittr "%>%"
 #' @export
-#' @examples
-#' download_drive_nc(email = "sld33@calvin.edu") # (this only works if you know sld33's password...)
 download_drive_rls <- function(rl_file = 'RLs_3obank',
                                  ping_log_file = 'qPing_log_corr_times_master',
                                   path = getwd(),

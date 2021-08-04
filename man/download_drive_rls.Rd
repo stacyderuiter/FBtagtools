@@ -29,6 +29,3 @@ Returns a "dribble" with information about the files and their location on googl
 \description{
 This function downloads the "raw" format of RL data, for all types of anthropogenic sounds, in all available variations of RL type and frequency band. Most users will want to also use \code{\link[FBtagtools]{extract_rls}} to generate data frames or text files with data in a simpler format.
 }
-\examples{
-download_drive_nc(email = "sld33@calvin.edu") # (this only works if you know sld33's password...)
-}
