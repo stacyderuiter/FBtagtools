@@ -11,7 +11,7 @@ add_event_depths(x, start_x, z, sampling_rate, start_offset = 0, tagon_time)
 
 \item{start_x}{name (no quotes needed) of variable in \code{x} that gives event times. Not needed if \code{x} is a vector or has only one column.}
 
-\item{z}{depth data: sensor data structure, vector, matrix, tibble, or data frame. If not a sensor structure, then \code{sampling_rate} is required.}
+\item{z}{depth data: sensor data structure, vector, matrix, tibble, or data frame. If not a sensor structure, then \code{sampling_rate} is required. If tibble or df it should have only one column (depth data).}
 
 \item{sampling_rate}{sampling rate of depth in Hz (required if x is not a sensor data structure, and ignored if it is)}
 
@@ -24,7 +24,4 @@ A data.frame with the data (one row per event) and additional column depth (in m
 }
 \description{
 Add time (in seconds since tagon and perhaps as datetimes in UTC and/or local timezone) to a tibble or data-frame with regularly sampled data
-}
-\examples{
-Examples will go here
 }
