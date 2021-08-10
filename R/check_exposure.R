@@ -17,7 +17,7 @@ check_exposure <- function(x, start_x, rl_data){
               event_start = min(sec_since_tagon, na.rm = TRUE),
               event_end = max(sec_since_tagon + duration, na.rm = TRUE),
               .groups = 'drop_last') %>%
-    ungroup()
+    dplyr::ungroup()
   # for each event time, check if in exposure periods and return the event ID and type(s)
   x$exposure_EventID <- 'None';
   x$exposure_type <- 'None';

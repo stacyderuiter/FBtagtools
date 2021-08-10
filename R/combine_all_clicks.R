@@ -48,7 +48,8 @@ combine_all_clicks <- function(tag_id = zc_smrt_tag_list,
                            save_output = FALSE)
   }
 
-  data_out <- list()
+  buzz_out <- list()
+  click_out <- list()
 
   # loop over tags
   for (t in c(1:length(tags))){
@@ -111,6 +112,7 @@ combine_all_clicks <- function(tag_id = zc_smrt_tag_list,
 
     if (nrow(this_buzz) > 0){
       this_buzz <- this_buzz %>%
+        dplyr::mutate(tag_id = tag_number) %>% # for name consistency across files
         # per SC keep ones that are labelled "BW Buzz" but not "Poss" or "Possible" and NOT probably
         dplyr::filter(stringr::str_detect(note, pattern = 'BW Buzz')) %>%
         dplyr::filter(stringr::str_detect(tolower(note),
@@ -120,7 +122,7 @@ combine_all_clicks <- function(tag_id = zc_smrt_tag_list,
                                           pattern = 'probabl',
                                           negate = TRUE)) %>%
         # make sure in chronological order
-        arrange(sec_since_tagon)
+        dplyr::arrange(sec_since_tagon)
       # add depths
       this_buzz <- add_event_depths(this_buzz,
                                     start_x = sec_since_tagon,
@@ -153,7 +155,7 @@ combine_all_clicks <- function(tag_id = zc_smrt_tag_list,
       this_allclicks <- this_allclicks %>%
         dplyr::filter(stringr::str_detect(click_event_label, 'Surf', negate = TRUE))
       # sort in time order
-      this_allclicks <- arrange(this_allclicks, sec_since_tagon)
+      this_allclicks <- dplyr::arrange(this_allclicks, sec_since_tagon)
       # add click ICIs
       this_allclicks <- this_allclicks %>%
         dplyr::mutate(ICI_sec = c(NaN, diff(dplyr::pull(this_allclicks, sec_since_tagon))))
@@ -169,7 +171,7 @@ combine_all_clicks <- function(tag_id = zc_smrt_tag_list,
 
       # add tag ID
       this_allclicks <- this_allclicks %>%
-        mutate(tag_id = tag_id[t])
+        dplyr::mutate(tag_id = tag_id[t])
 
     }
 
@@ -180,10 +182,10 @@ combine_all_clicks <- function(tag_id = zc_smrt_tag_list,
     click_out_all <- dplyr::bind_rows(click_out)
     if (save_csv){
       bout <- buzz_out_all %>%
-        dplyr::mutate(dplyr::across(tidyselect::where(tidyselect::ends_with('UTC')), as.character))
+        dplyr::mutate(dplyr::across(tidyselect::ends_with('UTC'), as.character))
       readr::write_csv(bout, file = buzz_csv_name)
       cout <- click_out_all %>%
-        dplyr::mutate(dplyr::across(tidyselect::where(tidyselect::ends_with('UTC')), as.character))
+        dplyr::mutate(dplyr::across(tidyselect::ends_with('UTC'), as.character))
       readr::write_csv(cout, file = click_csv_name)
     }
 
