@@ -19,7 +19,16 @@
     <loc>https://stacyderuiter.github.io/FBtagtools/reference/add_times.html</loc>
   </url>
   <url>
+    <loc>https://stacyderuiter.github.io/FBtagtools/reference/check_exposure.html</loc>
+  </url>
+  <url>
+    <loc>https://stacyderuiter.github.io/FBtagtools/reference/combine_all_clicks.html</loc>
+  </url>
+  <url>
     <loc>https://stacyderuiter.github.io/FBtagtools/reference/dive_acoustic_summary.html</loc>
+  </url>
+  <url>
+    <loc>https://stacyderuiter.github.io/FBtagtools/reference/dive_cycle_summary.html</loc>
   </url>
   <url>
     <loc>https://stacyderuiter.github.io/FBtagtools/reference/download_bathy.html</loc>
@@ -41,6 +50,9 @@
   </url>
   <url>
     <loc>https://stacyderuiter.github.io/FBtagtools/reference/find_limpet_dives.html</loc>
+  </url>
+  <url>
+    <loc>https://stacyderuiter.github.io/FBtagtools/reference/get_br.html</loc>
   </url>
   <url>
     <loc>https://stacyderuiter.github.io/FBtagtools/reference/interval_join.html</loc>

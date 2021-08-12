@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Add time columns to time-series — add_event_depths • FBtagtools</title>
+<title>Dive-level acoustic and tag data, for one or more tags — combine_all_clicks • FBtagtools</title>
 
 
 <!-- jquery -->
@@ -45,8 +45,8 @@
 
 
 
-<meta property="og:title" content="Add time columns to time-series — add_event_depths" />
-<meta property="og:description" content="Add time (in seconds since tagon and perhaps as datetimes in UTC and/or local timezone) to a tibble or data-frame with regularly sampled data" />
+<meta property="og:title" content="Dive-level acoustic and tag data, for one or more tags — combine_all_clicks" />
+<meta property="og:description" content="Summarize SMRT (and/or Lander2) tag data on all clicks; add data on dive depth and sound exposure." />
 
 
 
@@ -115,49 +115,71 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Add time columns to time-series</h1>
+    <h1>Dive-level acoustic and tag data, for one or more tags</h1>
     
-    <div class="hidden name"><code>add_event_depths.Rd</code></div>
+    <div class="hidden name"><code>combine_all_clicks.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Add time (in seconds since tagon and perhaps as datetimes in UTC and/or local timezone) to a tibble or data-frame with regularly sampled data</p>
+    <p>Summarize SMRT (and/or Lander2) tag data on all clicks; add data on dive depth and sound exposure.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>add_event_depths</span><span class='op'>(</span><span class='va'>x</span>, <span class='va'>start_x</span>, <span class='va'>z</span>, <span class='va'>sampling_rate</span>, start_offset <span class='op'>=</span> <span class='fl'>0</span>, <span class='va'>tagon_time</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>combine_all_clicks</span><span class='op'>(</span>
+  tag_id <span class='op'>=</span> <span class='va'>zc_smrt_tag_list</span>,
+  nc_path <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/getwd.html'>getwd</a></span><span class='op'>(</span><span class='op'>)</span>,
+  ae_path <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/getwd.html'>getwd</a></span><span class='op'>(</span><span class='op'>)</span>,
+  <span class='va'>rl_file</span>,
+  <span class='va'>ping_log_file</span>,
+  <span class='va'>email</span>,
+  save_csv <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  click_csv_name <span class='op'>=</span> <span class='st'>"combined_zc_clicks.csv"</span>,
+  buzz_csv_name <span class='op'>=</span> <span class='st'>"combined_zc_buzzes.csv"</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>x</th>
-      <td><p>input data: vector or data frame with event times as datetimes, or in seconds since tagon. Datetimes are assumed to be UTC.</p></td>
+      <th>tag_id</th>
+      <td><p>Character string or vector with tag IDs (without "-cal.nc"). Default: all SMRT/Lander2 ziphius tags.</p></td>
     </tr>
     <tr>
-      <th>start_x</th>
-      <td><p>name (no quotes needed) of variable in <code>x</code> that gives event times. Not needed if <code>x</code> is a vector or has only one column.</p></td>
+      <th>nc_path</th>
+      <td><p>Directory (quoted string) where .nc files are stored. Can be one string, or a list the same length as tag_ids. Note: to download latest versions from Google drive, try function: <code><a href='download_drive_nc.html'>download_drive_nc</a></code>. Default: current working directory. Note: use "/" and not "\" to avoid headaches.</p></td>
     </tr>
     <tr>
-      <th>z</th>
-      <td><p>depth data: sensor data structure, vector, matrix, tibble, or data frame. If not a sensor structure, then <code>sampling_rate</code> is required. If tibble or df it should have only one column (depth data).</p></td>
+      <th>ae_path</th>
+      <td><p>Directory (quoted string) where text files with info about acoustic events are stored. If needed, you can use <code><a href='download_drive_acoustic_events.html'>download_drive_acoustic_events</a></code> to get these. Default is the current working directory.</p></td>
     </tr>
     <tr>
-      <th>sampling_rate</th>
-      <td><p>sampling rate of depth in Hz (required if x is not a sensor data structure, and ignored if it is)</p></td>
+      <th>rl_file</th>
+      <td><p>name (with path, if needed) of locally-stored .csv file with raw RL data. If not provided, the default is to use <code><a href='download_drive_rls.html'>download_drive_rls</a></code> to obtain it from the FB Google Drive.</p></td>
     </tr>
     <tr>
-      <th>start_offset</th>
-      <td><p>time (in seconds) between start of tag recording and the first recorded sample in <code>z</code>. Ignored (and pulled from metadata) if <code>x</code> is a sensor data structure. default: 0</p></td>
+      <th>ping_log_file</th>
+      <td><p>name (with path, if needed) of locally-stored .csv file with raw RL data. If not provided, the default is to use <code><a href='download_drive_rls.html'>download_drive_rls</a></code> to obtain it from the FB Google Drive.</p></td>
     </tr>
     <tr>
-      <th>tagon_time</th>
-      <td><p>string giving the tag recording start time. Can be found in tag_dataset$info$dephist_device_datetime_start. Format: day month year hours minutes seconds. Required if times in <code>x</code> are datetimes.</p></td>
+      <th>email</th>
+      <td><p>Email address (required for FB Google Drive authentication; optional if <code>rl_file</code> is provided). You may also be asked to sign in or verify your Google identity as this function runs.</p></td>
+    </tr>
+    <tr>
+      <th>save_csv</th>
+      <td><p>Logical; whether or not to save a csv file with the results. Default: TRUE (and will overwrite any existing file)</p></td>
+    </tr>
+    <tr>
+      <th>click_csv_name</th>
+      <td><p>File name (with path, if desired) in which to save results in csv format. Default is combined_zc_clicks.csv.</p></td>
+    </tr>
+    <tr>
+      <th>buzz_csv_name</th>
+      <td><p>File name for buzz file. Default combined_zc_buzzes.csv</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>A data.frame with the data (one row per event) and additional column depth (in meters) of the animal at the start time of the event. Note: if you want to grab and summarize depth data for longer intervals, consider <code><a href='interval_join.html'>interval_join</a></code> or <code><a href='https://rdrr.io/pkg/tagtools/man/find_dives.html'>find_dives</a></code> and <code><a href='https://rdrr.io/pkg/tagtools/man/dive_stats.html'>dive_stats</a></code></p>
+    <p>A named list of two tibbles, one for clicks and one for buzzes</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

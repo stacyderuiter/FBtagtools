@@ -17,6 +17,3 @@ Returns a data.frame with information about each wav file for each deployment of
 \description{
 This function pulls data on start times (and other metadata) about acoustic wav files recorded by SMRT tags. It assumes that you already have downloaded the nc files for the deployments of interest to you; if not, see \code{\link[FBtagtools]{download_drive_nc}}
 }
-\examples{
-extract_rls(email = "sld33@calvin.edu") # (this only works if you know sld33's password...)
-}

@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Add time columns to time-series — add_event_depths • FBtagtools</title>
+<title>Get fluke stroking signal from magnetometer data — get_br • FBtagtools</title>
 
 
 <!-- jquery -->
@@ -45,8 +45,8 @@
 
 
 
-<meta property="og:title" content="Add time columns to time-series — add_event_depths" />
-<meta property="og:description" content="Add time (in seconds since tagon and perhaps as datetimes in UTC and/or local timezone) to a tibble or data-frame with regularly sampled data" />
+<meta property="og:title" content="Get fluke stroking signal from magnetometer data — get_br" />
+<meta property="og:description" content="For derivation see: Martin López L, Aguilar de Soto N, Miller P, Johnson M 2016: Tracking the kinematics of caudal-oscillatory swimming: A comparison  of two on-animal sensing methods. J Exp Biol 219:2103-2109. Note: to estimate the stroking rate of small animals for which the specific acceleration is larger, it may be simpler to find the zero crossings on the 	high-pass-filtered acceleration (z axis for cetaceans, y axis for pinnipeds and fish) directly rather than using get_br." />
 
 
 
@@ -115,49 +115,45 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Add time columns to time-series</h1>
+    <h1>Get fluke stroking signal from magnetometer data</h1>
     
-    <div class="hidden name"><code>add_event_depths.Rd</code></div>
+    <div class="hidden name"><code>get_br.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Add time (in seconds since tagon and perhaps as datetimes in UTC and/or local timezone) to a tibble or data-frame with regularly sampled data</p>
+    <p>For derivation see: Martin López L, Aguilar de Soto N, Miller P, Johnson M 2016: Tracking the kinematics of caudal-oscillatory swimming: A comparison  of two on-animal sensing methods. J Exp Biol 219:2103-2109. Note: to estimate the stroking rate of small animals for which the specific acceleration is larger, it may be simpler to find the zero crossings on the 	high-pass-filtered acceleration (z axis for cetaceans, y axis for pinnipeds and fish) directly rather than using get_br.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>add_event_depths</span><span class='op'>(</span><span class='va'>x</span>, <span class='va'>start_x</span>, <span class='va'>z</span>, <span class='va'>sampling_rate</span>, start_offset <span class='op'>=</span> <span class='fl'>0</span>, <span class='va'>tagon_time</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>get_br</span><span class='op'>(</span><span class='va'>Ma</span>, <span class='va'>sampling_rate</span>, <span class='va'>fh</span>, thr <span class='op'>=</span> <span class='fl'>0.2</span>, ax <span class='op'>=</span> <span class='st'>"z"</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>x</th>
-      <td><p>input data: vector or data frame with event times as datetimes, or in seconds since tagon. Datetimes are assumed to be UTC.</p></td>
-    </tr>
-    <tr>
-      <th>start_x</th>
-      <td><p>name (no quotes needed) of variable in <code>x</code> that gives event times. Not needed if <code>x</code> is a vector or has only one column.</p></td>
-    </tr>
-    <tr>
-      <th>z</th>
-      <td><p>depth data: sensor data structure, vector, matrix, tibble, or data frame. If not a sensor structure, then <code>sampling_rate</code> is required. If tibble or df it should have only one column (depth data).</p></td>
+      <th>Ma</th>
+      <td><p>input data: sensor data structure, or matrix with magnetometer data</p></td>
     </tr>
     <tr>
       <th>sampling_rate</th>
-      <td><p>sampling rate of depth in Hz (required if x is not a sensor data structure, and ignored if it is)</p></td>
+      <td><p>sampling rate of Ma in Hz (required if Ma is not a sensor data structure, and ignored if it is)</p></td>
     </tr>
     <tr>
-      <th>start_offset</th>
-      <td><p>time (in seconds) between start of tag recording and the first recorded sample in <code>z</code>. Ignored (and pulled from metadata) if <code>x</code> is a sensor data structure. default: 0</p></td>
+      <th>fh</th>
+      <td><p>is the high-pass filter frequency in Hz to use to separate orientation changes from locomotory strokes. It should be about half of the dominant stroke frequency if needed. Use <code><a href='https://rdrr.io/pkg/tagtools/man/dsf.html'>dsf</a></code> to estimate the dominant stroke frequency.</p></td>
     </tr>
     <tr>
-      <th>tagon_time</th>
-      <td><p>string giving the tag recording start time. Can be found in tag_dataset$info$dephist_device_datetime_start. Format: day month year hours minutes seconds. Required if times in <code>x</code> are datetimes.</p></td>
+      <th>thr</th>
+      <td><p>is an optional minimum field strength threshold to prevent errors in the computation. Errors arise if the plane of rotations is nearly perpendicular to the local magnetic field vector. To avoid these, the body rotation signal is replaced with NA if the field strength in the locomotory plane drops below thr fraction of the total field strength.</p></td>
+    </tr>
+    <tr>
+      <th>ax</th>
+      <td><p>is an optional indicator that the locomotion is in the x-y plane. The function expects the locomotion to be in the x-z plane (e.g., cetacean swimming) by default. To comoute body rotations in x-y plane (e.g., for pinnipeds and many fish), use ax='y'.</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>A data.frame with the data (one row per event) and additional column depth (in meters) of the animal at the start time of the event. Note: if you want to grab and summarize depth data for longer intervals, consider <code><a href='interval_join.html'>interval_join</a></code> or <code><a href='https://rdrr.io/pkg/tagtools/man/find_dives.html'>find_dives</a></code> and <code><a href='https://rdrr.io/pkg/tagtools/man/dive_stats.html'>dive_stats</a></code></p>
+    <p>The body rotation signal in radians. It is a vector with the same sampling rate and number of samples as Ma.</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

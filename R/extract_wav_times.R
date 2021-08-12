@@ -7,8 +7,6 @@
 #' @return Returns a data.frame with information about each wav file for each deployment of interest. If there are multiple rows per wav file, that is indicative of a (filled or un-filled) gap; the first row for a given deployment gives the file start time.
 #' @importFrom magrittr "%>%"
 #' @export
-#' @examples
-#' extract_rls(email = "sld33@calvin.edu") # (this only works if you know sld33's password...)
 extract_wav_times <- function(tag_id = zc_smrt_tag_list,
                         nc_path = getwd()){
   if ('data.frame' %in% class(tag_id)){
