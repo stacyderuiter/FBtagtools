@@ -1,6 +1,6 @@
-#' Add time columns to time-series
+#' Add sun elevation angle data
 #'
-#' Add time (in seconds since tagon and perhaps as datetimes in UTC and/or local timezone) to a tibble or data-frame with regularly sampled data
+#' Add sun elevation angle (time of day) data to a tibble or data-frame with regularly sampled data
 #'
 #' @param utc_time UTC time
 #' @param lat latitude
