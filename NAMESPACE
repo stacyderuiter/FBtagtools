@@ -2,6 +2,7 @@
 
 export(add_event_depths)
 export(add_event_times)
+export(add_interval_rls)
 export(add_sensor_times)
 export(add_times)
 export(check_exposure)

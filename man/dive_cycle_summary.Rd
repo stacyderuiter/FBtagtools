@@ -10,10 +10,15 @@ dive_cycle_summary(
   ae_path = getwd(),
   bathy_path,
   ETOP01_bathy = FALSE,
-  rl_file,
   ping_log_file,
+  rl_file,
+  rl_model_dir,
+  dive_class_file,
+  acoustic_summary_file,
   email,
   save_csv = TRUE,
+  save_tracks = FALSE,
+  track_dir,
   csv_name = "dive_cycle_summary.csv"
 )
 }
@@ -28,19 +33,25 @@ dive_cycle_summary(
 
 \item{ETOP01_bathy}{whether to try to fill-in bathymetry info for locations outside NEPAC dataset bounds using NOAA online ETOP01 database. Default is FALSE. This is slow and no animals have gone out-of-bounds yet as of July 2021.}
 
+\item{ping_log_file}{name (with path, if needed) of locally-stored .csv file with raw RL data. If not provided, the default is to use \code{\link[FBtagtools]{download_drive_rls}} to obtain it from the FB Google Drive.}
+
 \item{rl_file}{name (with path, if needed) of locally-stored .csv file with raw RL data. If not provided, the default is to use \code{\link[FBtagtools]{download_drive_rls}} to obtain it from the FB Google Drive.}
 
-\item{ping_log_file}{name (with path, if needed) of locally-stored .csv file with raw RL data. If not provided, the default is to use \code{\link[FBtagtools]{download_drive_rls}} to obtain it from the FB Google Drive.}
+\item{rl_model_dir}{directory where files with results of RL modeling (for non-acoustic tags) are stored locally}
+
+\item{dive_class_file}{name (with path, if needed) of locally-stored .csv file with information on machine-learning classification of dives as foraging or not. This should match perfectly with presence/absence of clicking from acoustic recordings, but is mainly for tags/dives without acoutics.}
+
+\item{acoustic_summary_file}{optional - if you have already run \code{\link[FBtagtools]{dive_acoustic_summary}} and have saved results as a csv, you can use that file to get results faster. Otherwise, this function will call \code{\link[FBtagtools]{dive_acoustic_summary}} and re-do the dive-level processing.}
 
 \item{email}{Email address (required for FB Google Drive authentication; optional if \code{rl_file} is provided). You may also be asked to sign in or verify your Google identity as this function runs.}
 
 \item{save_csv}{Logical; whether or not to save a csv file with the results. Default: TRUE (and will overwrite any existing file)}
 
+\item{save_tracks}{Logical; whether or not to save csv file with geo-referenced pseudotrack (in meters northing/easting relative to initial location)}
+
+\item{track_dir}{Directory to store tracks in (if save_tracks is TRUE). Defaults to working directory.}
+
 \item{csv_name}{File name (with path, if desired) in which to save results in csv format. Default is dive_acoustic_summary.csv.}
-
-\item{rl_model_dir}{directory where files with results of RL modeling (for non-acoustic tags) are stored locally}
-
-\item{dive_class_file}{name (with path, if needed) of locally-stored .csv file with information on machine-learning classification of dives as foraging or not. This should match perfectly with presence/absence of clicking from acoustic recordings, but is mainly for tags/dives without acoutics.}
 }
 \value{
 A data.frame() with one row per dive, per whale

@@ -2,7 +2,7 @@
 % Please edit documentation in R/solar_elev.R
 \name{solar_elev}
 \alias{solar_elev}
-\title{Add time columns to time-series}
+\title{Add sun elevation angle data}
 \usage{
 solar_elev(time, lat, long, time_zone = "America/Los_Angeles")
 }
@@ -19,7 +19,7 @@ solar_elev(time, lat, long, time_zone = "America/Los_Angeles")
 solar stage (categorical): "Day", "Night", "Dusk" or "Dawn"
 }
 \description{
-Add time (in seconds since tagon and perhaps as datetimes in UTC and/or local timezone) to a tibble or data-frame with regularly sampled data
+Add sun elevation angle (time of day) data to a tibble or data-frame with regularly sampled data
 }
 \examples{
 Examples will go here
