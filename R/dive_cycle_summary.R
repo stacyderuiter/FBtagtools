@@ -140,7 +140,9 @@ dive_cycle_summary <- function(tag_id = zc_smrt_tag_list,
                      n_shallow_dives = dplyr::n() - 1,
                      fd_surface_interval = dive_cycle_dur_sec - fd_dur_sec,
                      dive_cycle_surface_sec = sum(next_start - dive_end_sec, na.rm = TRUE),
-                     dive_cycle_breath_count = sum(breath_count_post_dive, na.rm = TRUE),
+                     dive_cycle_breath_count = ifelse(all(is.na(breath_count_post_dive)),
+                                                      NA,
+                                                      sum(breath_count_post_dive, na.rm = TRUE)),
                      fd_bathy = dplyr::first(bathy),
                      fd_bathy_slope = dplyr::first(bathy_slope),
                      fd_bathy_aspect = dplyr::first(bathy_aspect),
@@ -551,7 +553,7 @@ dive_cycle_summary <- function(tag_id = zc_smrt_tag_list,
 
             # this will be the RL at the min modeled depth (since during a dive cycle the whale is @ zero depth sometimes)
             these_dive_cycles$model_rl_min_depth[cy] <- this_model %>%
-              dplyr::filter(rl_depth_m == min(pull(this_model, rl_depth_m), na.rm = TRUE)) %>%
+              dplyr::filter(rl_depth_m == min(dplyr::pull(this_model, rl_depth_m), na.rm = TRUE)) %>%
               dplyr::pull(rl) %>%
               max(na.rm = TRUE)
 
