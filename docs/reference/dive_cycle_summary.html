@@ -130,10 +130,15 @@
   ae_path <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/getwd.html'>getwd</a></span><span class='op'>(</span><span class='op'>)</span>,
   <span class='va'>bathy_path</span>,
   ETOP01_bathy <span class='op'>=</span> <span class='cn'>FALSE</span>,
-  <span class='va'>rl_file</span>,
   <span class='va'>ping_log_file</span>,
+  <span class='va'>rl_file</span>,
+  <span class='va'>rl_model_dir</span>,
+  <span class='va'>dive_class_file</span>,
+  <span class='va'>acoustic_summary_file</span>,
   <span class='va'>email</span>,
   save_csv <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  save_tracks <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  <span class='va'>track_dir</span>,
   csv_name <span class='op'>=</span> <span class='st'>"dive_cycle_summary.csv"</span>
 <span class='op'>)</span></pre>
 
@@ -161,12 +166,24 @@
       <td><p>whether to try to fill-in bathymetry info for locations outside NEPAC dataset bounds using NOAA online ETOP01 database. Default is FALSE. This is slow and no animals have gone out-of-bounds yet as of July 2021.</p></td>
     </tr>
     <tr>
+      <th>ping_log_file</th>
+      <td><p>name (with path, if needed) of locally-stored .csv file with raw RL data. If not provided, the default is to use <code><a href='download_drive_rls.html'>download_drive_rls</a></code> to obtain it from the FB Google Drive.</p></td>
+    </tr>
+    <tr>
       <th>rl_file</th>
       <td><p>name (with path, if needed) of locally-stored .csv file with raw RL data. If not provided, the default is to use <code><a href='download_drive_rls.html'>download_drive_rls</a></code> to obtain it from the FB Google Drive.</p></td>
     </tr>
     <tr>
-      <th>ping_log_file</th>
-      <td><p>name (with path, if needed) of locally-stored .csv file with raw RL data. If not provided, the default is to use <code><a href='download_drive_rls.html'>download_drive_rls</a></code> to obtain it from the FB Google Drive.</p></td>
+      <th>rl_model_dir</th>
+      <td><p>directory where files with results of RL modeling (for non-acoustic tags) are stored locally</p></td>
+    </tr>
+    <tr>
+      <th>dive_class_file</th>
+      <td><p>name (with path, if needed) of locally-stored .csv file with information on machine-learning classification of dives as foraging or not. This should match perfectly with presence/absence of clicking from acoustic recordings, but is mainly for tags/dives without acoutics.</p></td>
+    </tr>
+    <tr>
+      <th>acoustic_summary_file</th>
+      <td><p>optional - if you have already run <code><a href='dive_acoustic_summary.html'>dive_acoustic_summary</a></code> and have saved results as a csv, you can use that file to get results faster. Otherwise, this function will call <code><a href='dive_acoustic_summary.html'>dive_acoustic_summary</a></code> and re-do the dive-level processing.</p></td>
     </tr>
     <tr>
       <th>email</th>
@@ -177,16 +194,16 @@
       <td><p>Logical; whether or not to save a csv file with the results. Default: TRUE (and will overwrite any existing file)</p></td>
     </tr>
     <tr>
+      <th>save_tracks</th>
+      <td><p>Logical; whether or not to save csv file with geo-referenced pseudotrack (in meters northing/easting relative to initial location)</p></td>
+    </tr>
+    <tr>
+      <th>track_dir</th>
+      <td><p>Directory to store tracks in (if save_tracks is TRUE). Defaults to working directory.</p></td>
+    </tr>
+    <tr>
       <th>csv_name</th>
       <td><p>File name (with path, if desired) in which to save results in csv format. Default is dive_acoustic_summary.csv.</p></td>
-    </tr>
-    <tr>
-      <th>rl_model_dir</th>
-      <td><p>directory where files with results of RL modeling (for non-acoustic tags) are stored locally</p></td>
-    </tr>
-    <tr>
-      <th>dive_class_file</th>
-      <td><p>name (with path, if needed) of locally-stored .csv file with information on machine-learning classification of dives as foraging or not. This should match perfectly with presence/absence of clicking from acoustic recordings, but is mainly for tags/dives without acoutics.</p></td>
     </tr>
     </table>
 

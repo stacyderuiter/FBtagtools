@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Function reference • FBtagtools</title>
+<title>Add RL information for time intervals — add_interval_rls • FBtagtools</title>
 
 
 <!-- jquery -->
@@ -45,7 +45,8 @@
 
 
 
-<meta property="og:title" content="Function reference" />
+<meta property="og:title" content="Add RL information for time intervals — add_interval_rls" />
+<meta property="og:description" content="Add information about broadband RMS RLs to a dataset where each row contains data on a time interval, with start/end times of the interval given in seconds since start of tag record" />
 
 
 
@@ -64,7 +65,7 @@
   </head>
 
   <body data-spy="scroll" data-target="#toc">
-    <div class="container template-reference-index">
+    <div class="container template-reference-topic">
       <header>
       <div class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container">
@@ -112,174 +113,49 @@
       </header>
 
 <div class="row">
-  <div class="contents col-md-9">
+  <div class="col-md-9 contents">
     <div class="page-header">
-      <h1>Reference</h1>
+    <h1>Add RL information for time intervals</h1>
+    
+    <div class="hidden name"><code>add_interval_rls.Rd</code></div>
     </div>
 
-    <table class="ref-index">
+    <div class="ref-description">
+    <p>Add information about broadband RMS RLs to a dataset where each row contains data on a time interval, with start/end times of the interval given in seconds since start of tag record</p>
+    </div>
 
-    <colgroup>
-      
-      <col class="alias" />
-      <col class="title" />
-    </colgroup>
+    <pre class="usage"><span class='fu'>add_interval_rls</span><span class='op'>(</span><span class='va'>x</span>, <span class='va'>ping_data</span>, <span class='va'>start_x</span>, <span class='va'>end_x</span>, <span class='va'>start_ping</span><span class='op'>)</span></pre>
 
-    <tbody>
-      <tr>
-        <th colspan="2">
-          <h2 id="section-all-functions" class="hasAnchor"><a href="#section-all-functions" class="anchor"></a>All functions</h2>
-          <p class="section-desc"></p>
-        </th>
-      </tr>
-      
-      
-    </tbody><tbody>
-      
-      
-      <tr>
-        
-        <td>
-          <p><code><a href="add_bathy.html">add_bathy()</a></code> </p>
-        </td>
-        <td><p>Add bathymetry data, given locations</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="add_event_depths.html">add_event_depths()</a></code> </p>
-        </td>
-        <td><p>Add time columns to time-series</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="add_event_times.html">add_event_times()</a></code> </p>
-        </td>
-        <td><p>Add times of events (UTC or seconds_since)</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="add_interval_rls.html">add_interval_rls()</a></code> </p>
-        </td>
-        <td><p>Add RL information for time intervals</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="add_sensor_times.html">add_sensor_times()</a></code> </p>
-        </td>
-        <td><p>Add time columns to sensor data time-series</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="add_times.html">add_times()</a></code> </p>
-        </td>
-        <td><p>Add time columns to time-series</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="check_exposure.html">check_exposure()</a></code> </p>
-        </td>
-        <td><p>Add time columns to time-series</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="combine_all_clicks.html">combine_all_clicks()</a></code> </p>
-        </td>
-        <td><p>Dive-level acoustic and tag data, for one or more tags</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="dive_acoustic_summary.html">dive_acoustic_summary()</a></code> </p>
-        </td>
-        <td><p>Dive-level acoustic and tag data, for one or more tags</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="dive_cycle_summary.html">dive_cycle_summary()</a></code> </p>
-        </td>
-        <td><p>Dive-cycle-level acoustic and tag data, for one or more tags</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="download_bathy.html">download_bathy()</a></code> </p>
-        </td>
-        <td><p>Download bathymetry data, from FB google drive</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="download_drive_acoustic_events.html">download_drive_acoustic_events()</a></code> </p>
-        </td>
-        <td><p>Download spreadsheets with information about acoustic events from the FB Google Drive</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="download_drive_nc.html">download_drive_nc()</a></code> </p>
-        </td>
-        <td><p>Download .nc files with tag data from the FB Google Drive</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="download_drive_rls.html">download_drive_rls()</a></code> </p>
-        </td>
-        <td><p>Download raw RL data from the FB Google Drive</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="extract_rls.html">extract_rls()</a></code> </p>
-        </td>
-        <td><p>extract RL data</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="extract_wav_times.html">extract_wav_times()</a></code> </p>
-        </td>
-        <td><p>extract timing info for SMRT wav files</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="find_limpet_dives.html">find_limpet_dives()</a></code> </p>
-        </td>
-        <td><p>Find time cues for dives</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="get_br.html">get_br()</a></code> </p>
-        </td>
-        <td><p>Get fluke stroking signal from magnetometer data</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="interval_join.html">interval_join()</a></code> </p>
-        </td>
-        <td><p>Join data at different time-scales</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="solar_elev.html">solar_elev()</a></code> </p>
-        </td>
-        <td><p>Add sun elevation angle data</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="solar_stage.html">solar_stage()</a></code> </p>
-        </td>
-        <td><p>Add time columns to time-series</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="sum_rls.html">sum_rls()</a></code> </p>
-        </td>
-        <td><p>Sum RLs in dB</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="utc_to_local.html">utc_to_local()</a></code> </p>
-        </td>
-        <td><p>Add local time column to data frame with UTC time</p></td>
-      </tr>
-    </tbody>
+    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
+    <table class="ref-arguments">
+    <colgroup><col class="name" /><col class="desc" /></colgroup>
+    <tr>
+      <th>x</th>
+      <td><p>data frame or tibble with each row giving data about a time interval (for one tag)</p></td>
+    </tr>
+    <tr>
+      <th>ping_data</th>
+      <td><p>data frame or tibble for one tag, with each row giving rl data from one sound (for example, from <code><a href='extract_rls.html'>extract_rls</a></code>)</p></td>
+    </tr>
+    <tr>
+      <th>start_x</th>
+      <td><p>name of variable in x (quotes not needed) with start times of intervals, in seconds since start of tag recording</p></td>
+    </tr>
+    <tr>
+      <th>end_x</th>
+      <td><p>name of variable in x (quotes not needed) with end times of intervals in seconds since start of tag recording</p></td>
+    </tr>
+    <tr>
+      <th>start_ping</th>
+      <td><p>name of variable in ping_data giving start times of pings in seconds since start of tag recording</p></td>
+    </tr>
     </table>
-  </div>
 
+    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
+
+    <p>x with additional columns giving average, min, max, etc. RLs in each time interval</p>
+
+  </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">
       <h2 data-toc-skip>Contents</h2>
