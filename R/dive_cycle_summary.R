@@ -460,6 +460,11 @@ dive_cycle_summary <- function(tag_id = zc_smrt_tag_list,
                     model_ids = NA,
                     model_data_source = NA,
                     model_sonar_type = NA,
+                    model_sonar_loc_source = NA,
+                    model_source_whale_distance_km = NA,
+                    model_source_whale_distance_min_km = NA,
+                    model_source_whale_distance_max_km = NA,
+                    model_source_whale_distance_median_km = NA,
                     model_rl_max_depth = NA,
                     model_rl_min_depth = NA,
                     model_rl_min = NA,
@@ -488,6 +493,11 @@ dive_cycle_summary <- function(tag_id = zc_smrt_tag_list,
                                                                           pad = '0'), '.csv',
                                                          sep = '' ))
         these_dive_cycles$model_ids[cy] <- this_cycle_meta %>% dplyr::pull(ID) %>% list()
+        these_dive_cycles$model_sonar_loc_source = this_cycle_meta %>% dplyr::pull(SonarLocSource) %>% unique() %>% list()
+        these_dive_cycles$model_source_whale_distance_km = this_cycle_meta %>% dplyr::pull(`Tag-SonarKm`) %>% list()
+        these_dive_cycles$model_source_whale_distance_min_km = this_cycle_meta %>% dplyr::pull(`Tag-SonarKm`) %>% min(na.rm = TRUE)
+        these_dive_cycles$model_source_whale_distance_max_km = this_cycle_meta %>% dplyr::pull(`Tag-SonarKm`) %>% max(na.rm = TRUE)
+        these_dive_cycles$model_source_whale_distance_median_km = this_cycle_meta %>% dplyr::pull(`Tag-SonarKm`) %>% median(na.rm = TRUE)
       }
 
       this_model <- list()
