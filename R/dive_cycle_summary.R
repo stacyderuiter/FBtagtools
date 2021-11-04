@@ -452,7 +452,8 @@ dive_cycle_summary <- function(tag_id = zc_smrt_tag_list,
     # add in MODELED RLs
     #model_fnames <- list.files(rl_model_dir, pattern = paste0(tag_id[t], '.*', '.csv'))
     these_model_meta <- acous_model_meta %>%
-      dplyr::filter(TagID == tag_id[t])
+      dplyr::filter(TagID == tag_id[t]) %>%
+      dplyr::rename(tag_sonar_km = `Tag-SonarKm`)
 
     # add model results file names for each dive cycle plus modeled RLs?
     these_dive_cycles <- these_dive_cycles %>%
@@ -493,11 +494,11 @@ dive_cycle_summary <- function(tag_id = zc_smrt_tag_list,
                                                                           pad = '0'), '.csv',
                                                          sep = '' ))
         these_dive_cycles$model_ids[cy] <- this_cycle_meta %>% dplyr::pull(ID) %>% list()
-        these_dive_cycles$model_sonar_loc_source = this_cycle_meta %>% dplyr::pull(SonarLocSource) %>% unique() %>% list()
-        these_dive_cycles$model_source_whale_distance_km = this_cycle_meta %>% dplyr::pull(`Tag-SonarKm`) %>% list()
-        these_dive_cycles$model_source_whale_distance_min_km = this_cycle_meta %>% dplyr::pull(`Tag-SonarKm`) %>% min(na.rm = TRUE)
-        these_dive_cycles$model_source_whale_distance_max_km = this_cycle_meta %>% dplyr::pull(`Tag-SonarKm`) %>% max(na.rm = TRUE)
-        these_dive_cycles$model_source_whale_distance_median_km = this_cycle_meta %>% dplyr::pull(`Tag-SonarKm`) %>% median(na.rm = TRUE)
+        these_dive_cycles$model_sonar_loc_source[cy] = this_cycle_meta %>% dplyr::pull(SonarLocSource) %>% unique() %>% list()
+        these_dive_cycles$model_source_whale_distance_km[cy] = this_cycle_meta %>% dplyr::pull(tag_sonar_km) %>% list()
+        these_dive_cycles$model_source_whale_distance_min_km[cy] = this_cycle_meta %>% dplyr::pull(tag_sonar_km) %>% min(na.rm = TRUE)
+        these_dive_cycles$model_source_whale_distance_max_km[cy] = this_cycle_meta %>% dplyr::pull(tag_sonar_km) %>% max(na.rm = TRUE)
+        these_dive_cycles$model_source_whale_distance_median_km[cy] = this_cycle_meta %>% dplyr::pull(tag_sonar_km) %>% median(na.rm = TRUE)
       }
 
       this_model <- list()
