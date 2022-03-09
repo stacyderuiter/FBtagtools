@@ -14,7 +14,7 @@ extract_wav_times <- function(tag_id = zc_smrt_tag_list,
   }
 
   # paste together file path(s) and tag file name(s)
-  tags <- file.path(nc_path, tag_id)
+  tags <- file.path(nc_path, paste(tag_id, '-cal', sep = ''))
 
   wav_cues <- list()
 

@@ -481,8 +481,9 @@ dive_cycle_summary <- function(tag_id = zc_smrt_tag_list,
                              dplyr::pull(dive_cycle_dur_sec) %>%
                              dplyr::nth(cy))
       this_cycle_meta <- these_model_meta %>%
-        dplyr::filter(LocTime >= dcst &
-                        LocTime < dcet)
+        dplyr::filter((StartTime >= dcst & StartTime < dcet) | # starts during this cycle
+                        (StartTime < dcst & EndTime > dcst) | # or spans whole cycle, starting before and ending after
+                        (EndTime >= dcst & EndTime < dcet)) # or ends during this cycle
 
       if (nrow(this_cycle_meta) > 0){
         these_dive_cycles$model_fnames[cy] <- list(paste(this_cycle_meta$TagID, '_',
