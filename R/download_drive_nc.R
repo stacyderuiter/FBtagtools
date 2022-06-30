@@ -16,7 +16,10 @@ download_drive_nc <- function(tag_id = zc_smrt_tag_list,
     stop('Email is required for Google Drive authentication and data download.')
   }
 
-  googledrive::drive_auth(email = email)
+  googledrive::drive_auth(email = email,
+                          scopes = c('https://www.googleapis.com/auth/spreadsheets',
+                                     'https://www.googleapis.com/auth/drive'))
+
 
   FB_dribble <- googledrive::shared_drive_find('FreakinBeakinTagData')
 
