@@ -159,12 +159,12 @@ extract_rls <- function(rl_file,
                  "Zica-20191111-94810",
                  "Zica-20191117-195993",
                  "Zica-20200106-195994")
-  ping_logA <- bind_cols(ping_log |> dplyr::filter(`Tag ID` %in% orig_tags),
+  ping_logA <- dplyr::bind_cols(ping_log |> dplyr::filter(`Tag ID` %in% orig_tags),
                          raw_rls |> dplyr::filter(depid %in% orig_tags))
   ping_logB <- dplyr::left_join(ping_log |> dplyr::filter(!(`Tag ID` %in% orig_tags)) |> dplyr::distinct(),
                                rl_log |> dplyr::filter(!(depid %in% orig_tags)) |> dplyr::distinct(),
                                by = c("Tag ID" = "depid", "start_time" = "st_UTC"))
-  ping_log <- bind_rows(ping_logA, ping_logB) |>
+  ping_log <- dplyr::bind_rows(ping_logA, ping_logB) |>
     dplyr::rename(sec_since_tagon = st)
 
   # processing for specific signal types
