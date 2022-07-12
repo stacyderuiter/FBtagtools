@@ -75,13 +75,13 @@ extract_rls_nolog <- function(rl_file,
                 ignore.case = TRUE))){
     orca_cols <- which(
       suppressWarnings(
-        readr::parse_number(names(ping_log))
+        readr::parse_number(names(rl_log))
       ) < 24000 &
         suppressWarnings(
-          readr::parse_number(names(ping_log))
+          readr::parse_number(names(rl_log))
         ) >= 500 &
         suppressWarnings(
-          stringr::str_detect(names(ping_log), 'SPL_rms')
+          stringr::str_detect(names(rl_log), 'SPL_rms')
           )
     )
 
@@ -99,7 +99,7 @@ extract_rls_nolog <- function(rl_file,
       dplyr::summarize(BB_RMS = sum_rls(value)) |>
       dplyr::ungroup()
 
-    orca_spl <- ping_log |>
+    orca_spl <- rl_log |>
       dplyr::filter(stringr::str_detect(tolower(signal_type), pattern = "orca")) |>
       dplyr::select(tidyselect::all_of(orca_cols),
                     depid, signal_type,
