@@ -63,7 +63,7 @@ extract_rls_nolog <- function(rl_file,
   rl_log <- dplyr::arrange(raw_rls,
                             depid,
                             st) |>
-    dplyr::mutate(st_UTC = lubridate::mdy_hms(st_UTC))
+    dplyr::mutate(st_UTC = lubridate::dmy_hms(st_UTC))
 
   # to properly join need to convert between st cst and start_time UTC
   # will add in UTC time stamps direct from audit file in to 2022+ RL files to ease matching up?

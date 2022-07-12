@@ -7,7 +7,7 @@ Authors@R:
            role = c("aut", "cre"),
            email = "sld33@calvin.edu",
            comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: Tools for working with FB SMRT (and Lander2) tag data
+Description: Tools for working with FB SMRT (and Lander2) tag data.
 License: MIT + file LICENSE
 Suggests: 
     testthat (>= 3.0.0)
@@ -24,14 +24,16 @@ Imports:
     lubridate,
     magrittr,
     marmap,
+    plyr,
+    purrr,
     oce, 
-    raster,
     readr,
     readxl,
-    rgdal,
     rlang,
     sp,
     stringr,
     swfscMisc,
     tibble,
-    tidyr
+    tidyr,
+    tidyselect,
+    zoo
