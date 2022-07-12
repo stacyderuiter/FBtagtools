@@ -3,7 +3,7 @@
 #' This function processes the "raw" format of RL data, allowing users to obtain RLs of desired types and in selected frequency bands. If you need direct access to the (more complicated) raw data, see \code{\link[FBtagtools]{download_drive_rls}}.
 #'
 #' @param rl_file name (with path, if needed), or a vector of names, of locally-stored .csv file with raw RL data. If not provided, the default is to use \code{\link[FBtagtools]{download_drive_rls}} to obtain all available RLs from the FB Google Drive.
-#' @param ping_log_file name (with path, if needed), or a vector of names, of locally-stored .csv file with raw RL data. If not provided, the default is to use \code{\link[FBtagtools]{download_drive_rls}} to obtain available Ziphius logs from the FB Google Drive.
+#' @param ping_log_file name (with path, if needed), or a vector of names, of locally-stored .csv file with ping log (acoustic audit) data. If not provided, the default is to \code{\link[FBtagtools]{download_drive_rls}} to obtain available Ziphius logs from the FB Google Drive.
 #' @param email Email address (required for FB Google Drive authentication; optional if `rl_file` is provided). You may also be asked to sign in or verify your Google identity as this function runs.
 #' @param save_output Logical; whether or not to save results in a .csv file. Default is TRUE.
 #' @param path Quoted string with the path to the directory where you want to save the output file. Defaults to the current working directory. Final "/" not needed. Use "/" rather than "\" to avoid possible headaches.
@@ -63,7 +63,7 @@ extract_rls <- function(rl_file,
                         paste0(ping_log_file, '.csv'))
 
 
-  # read in raw data
+  # read in ping log data
   raw_pings <- list()
   for (f in c(1:length(ping_file_loc))){
     raw_pings[[f]] <- suppressWarnings(readr::read_csv(ping_file_loc[f],
