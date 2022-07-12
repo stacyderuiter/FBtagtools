@@ -5,17 +5,20 @@
 \title{Download raw RL data from the FB Google Drive}
 \usage{
 download_drive_rls(
-  rl_file = "RLs_3obank",
-  ping_log_file = "qPing_log_corr_times_master",
+  rl_file = c("RLs_3obank", "RLs_3obank_2022.csv"),
+  ping_log_file = c("qPing_log_corr_times_master",
+    "Zica-20220112-195994_Individual_MFA_Pings.csv",
+    "Zica-20211113-195993_Individual_MFA_Pings.csv",
+    "Zica-20211112-94819_Individual_MFA_Pings.csv"),
   path = getwd(),
   email,
   overwrite = TRUE
 )
 }
 \arguments{
-\item{rl_file}{name of .csv file (on Google Drive) with ping log data. Defaults to: RLs_3obank.csv (most users should not need to change this, and at present there IS no other file.)}
+\item{rl_file}{name of .csv file(s) (on Google Drive) with ping log data. Defaults to: RLs_3obank.csv and RLs_3obank_2022.csv (most users should not need to change this.)}
 
-\item{ping_log_file}{name of .csv file (on Google Drive) with ping log data. Defaults to: qPing_log_corr_times_master.csv (most users should not need to change this, and at present there IS no other file.)}
+\item{ping_log_file}{name of .csv file (on Google Drive) with ping log data. Defaults to: qPing_log_corr_times_master.csv plus individual files for whales processed through June 2022 (most users should not need to change this.)}
 
 \item{path}{Quoted string with the path to the directory where you want to save the downloaded file. Defaults to the current working directory. Final "/" not needed. Use "/" rather than "\" to avoid possible headaches.}
 
