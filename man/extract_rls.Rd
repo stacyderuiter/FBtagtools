@@ -5,8 +5,11 @@
 \title{extract RL data}
 \usage{
 extract_rls(
-  rl_file,
-  ping_log_file,
+  rl_file = c("RLs_3obank.csv", "RLs_3obank_2022.csv"),
+  ping_log_file = c("qPing_log_corr_times_master",
+    "Zica-20220112-195994_Individual_MFA_Pings.csv",
+    "Zica-20211113-195993_Individual_MFA_Pings.csv",
+    "Zica-20211112-94819_Individual_MFA_Pings.csv"),
   email,
   save_output = TRUE,
   path = getwd(),

@@ -10,8 +10,11 @@ dive_acoustic_summary(
   ae_path = getwd(),
   bathy_path,
   ETOP01_bathy = FALSE,
-  rl_file,
-  ping_log_file,
+  rl_file = c("RLs_3obank.csv", "RLs_3obank_2022.csv"),
+  ping_log_file = c("qPing_log_corr_times_master",
+    "Zica-20220112-195994_Individual_MFA_Pings.csv",
+    "Zica-20211113-195993_Individual_MFA_Pings.csv",
+    "Zica-20211112-94819_Individual_MFA_Pings.csv"),
   email,
   save_csv = TRUE,
   csv_name = "dive_acoustic_summary.csv"
@@ -28,9 +31,9 @@ dive_acoustic_summary(
 
 \item{ETOP01_bathy}{whether to try to fill-in bathymetry info for locations outside NEPAC dataset bounds using NOAA online ETOP01 database. Default is FALSE. This is slow and no animals have gone out-of-bounds yet as of July 2021.}
 
-\item{rl_file}{name (with path, if needed) of locally-stored .csv file with raw RL data. If not provided, the default is to use \code{\link[FBtagtools]{download_drive_rls}} to obtain it from the FB Google Drive.}
+\item{rl_file}{name(s) (with path, if needed) of locally-stored .csv file(s) with raw RL data. If not provided, the default is to use \code{\link[FBtagtools]{download_drive_rls}} to obtain it from the FB Google Drive.}
 
-\item{ping_log_file}{name (with path, if needed) of locally-stored .csv file with ping log (acoustic audit) data. If not provided, the default is to use \code{\link[FBtagtools]{download_drive_rls}} to obtain it from the FB Google Drive.}
+\item{ping_log_file}{name(s) (with path, if needed) of locally-stored .csv file(s) with ping log (acoustic audit) data. If not provided, the default is to use \code{\link[FBtagtools]{download_drive_rls}} to obtain it from the FB Google Drive.}
 
 \item{email}{Email address (required for FB Google Drive authentication; optional if \code{rl_file} is provided). You may also be asked to sign in or verify your Google identity as this function runs.}
 

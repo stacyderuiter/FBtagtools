@@ -13,7 +13,6 @@
 #' @param save_csv Logical; whether or not to save a csv file with the results. Default: TRUE (and will overwrite any existing file)
 #' @param csv_name File name (with path, if desired) in which to save results in csv format. Default is dive_acoustic_summary.csv.
 #' @return A data.frame() with one row per dive, per whale
-#' @importFrom magrittr "|>"
 #' @export
 #' @examples
 #' Examples will go here
