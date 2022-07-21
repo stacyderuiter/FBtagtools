@@ -155,6 +155,11 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
         this_buzz <- readr::read_csv(file.path(ae_path, ae_files[bi]),
                                      show_col_types = FALSE)
       }
+      this_buzz <- rename_with(this_buzz, tolower)
+      if (!('label' %in% names(this_buzz))){
+        this_buzz <- this_buzz |>
+          dplyr::mutate(label = NA)
+      }
     }
 
     if (sum(bi) > 1){
@@ -171,10 +176,15 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
         # new files have Note, Label, UTC, Duration
         # will use note and label
         this_buzz[[i]] <- rename_with(this_buzz[[i]], tolower)
+        if (!('label' %in% names(this_buzz[[i]]))){
+          this_buzz[[i]] <- this_buzz[[i]] |>
+            dplyr::mutate(label = NA)
+        }
       }
       this_buzz <- dplyr::bind_rows(this_buzz) |>
         dplyr::distinct()
     }
+
 
     #FOR BUZZES
     # per SC keep ones that are labelled "BW Buzz" but not "Poss" or "Possible" and NOT probably
