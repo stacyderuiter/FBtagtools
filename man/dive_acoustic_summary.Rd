@@ -30,7 +30,7 @@ dive_acoustic_summary(
 
 \item{rl_file}{name (with path, if needed) of locally-stored .csv file with raw RL data. If not provided, the default is to use \code{\link[FBtagtools]{download_drive_rls}} to obtain it from the FB Google Drive.}
 
-\item{ping_log_file}{name (with path, if needed) of locally-stored .csv file with raw RL data. If not provided, the default is to use \code{\link[FBtagtools]{download_drive_rls}} to obtain it from the FB Google Drive.}
+\item{ping_log_file}{name (with path, if needed) of locally-stored .csv file with ping log (acoustic audit) data. If not provided, the default is to use \code{\link[FBtagtools]{download_drive_rls}} to obtain it from the FB Google Drive.}
 
 \item{email}{Email address (required for FB Google Drive authentication; optional if \code{rl_file} is provided). You may also be asked to sign in or verify your Google identity as this function runs.}
 

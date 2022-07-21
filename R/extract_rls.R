@@ -14,16 +14,20 @@
 #' @details For MFAS: Events are marked type "MFA". This also includes CAS exposures (which, if we have separated them out before, it is by choosing MFA pings of duration more than 20 seconds). Measurements were made in ANSI-standard 1/3 octave bands centered from 1-40kHz. For MFA events, bands with center frequencies less than 9kHz are considered. For max RMS level, Units are: dB re 1 muPa.  Measured in 200 msec windows; reported level is the highest in any one window. (Following conventions of SOCAL BRS, 3S projects.) For Echosounder events, selected bands are between 10-14kHz. For SPLs in individual 1/3 octave bands, the RL is "missing" (NA) if the SNR in that band was less than 6dB (and/or if the frequency band in question is no relevant for the selected signal type). For Explosions, all 1/3 octave bands below 5 kHz are included.
 #' @importFrom magrittr "%>%"
 #' @export
-extract_rls <- function(rl_file,
-                        ping_log_file,
+extract_rls <- function(rl_file = c('RLs_3obank.csv',
+                                    'RLs_3obank_2022.csv'),
+                        ping_log_file = c('qPing_log_corr_times_master',
+                                          'Zica-20220112-195994_Individual_MFA_Pings.csv',
+                                          'Zica-20211113-195993_Individual_MFA_Pings.csv',
+                                          'Zica-20211112-94819_Individual_MFA_Pings.csv'),
                         email,
                         save_output = TRUE,
                         path = getwd(),
                         out_file,
                         signal = 'MFAS',
                         overwrite = TRUE){
-  if (missing(rl_file) |
-      missing(ping_log_file)){
+  if (!(file.exists(rl_file[1])) |
+      !(file.exists(ping_log_file[1]))){
     if (missing(email)){
       stop('Email is required for Google Drive authentication and data download.')
     }else{
@@ -34,12 +38,13 @@ extract_rls <- function(rl_file,
       raw_rl_dribble <- download_drive_rls(path = path,
                          email = email,
                          overwrite = overwrite)
-      rl_file <- file.path(path, c('RLs_3obank.csv',
-                                   'RLs_3obank_2022.csv'))
+      rl_file <-  file.path(path, c('RLs_3obank.csv',
+                    'RLs_3obank_2022.csv'))
       ping_log_file <- file.path(path, c('qPing_log_corr_times_master',
-                                         'Zica-20220112-195994_Individual_MFA_Pings.csv',
-                                         'Zica-20211113-195993_Individual_MFA_Pings.csv',
-                                         'Zica-20211112-94819_Individual_MFA_Pings.csv'))
+                         'Zica-20220112-195994_Individual_MFA_Pings.csv',
+                         'Zica-20211113-195993_Individual_MFA_Pings.csv',
+                         'Zica-20211112-94819_Individual_MFA_Pings.csv'))
+
     }
   }
 

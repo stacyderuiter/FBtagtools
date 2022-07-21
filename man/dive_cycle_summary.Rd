@@ -57,5 +57,5 @@ dive_cycle_summary(
 A data.frame() with one row per dive, per whale
 }
 \description{
-Summarize SMRT (and/or Lander2) tag data from .nc files for each foraging dive cycle. There are data at two, nested time-scales: the dive cycle (a foraging dive and all the dives that follow it) and, within that, time-periods of set length in which other metrics are averaged. The data are intended for use in a state-switching model.
+Summarize SMRT (and/or Lander2) tag data from .nc files for each foraging dive cycle. There are data at two, nested time-scales: the dive cycle (a foraging dive and all the dives that follow it) and, within that, time-periods of set length in which other metrics are averaged. This function does coarse scale only. The data are intended for use in a state-switching model.
 }

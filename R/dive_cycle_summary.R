@@ -1,6 +1,6 @@
 #' Dive-cycle-level acoustic and tag data, for one or more tags
 #'
-#' Summarize SMRT (and/or Lander2) tag data from .nc files for each foraging dive cycle. There are data at two, nested time-scales: the dive cycle (a foraging dive and all the dives that follow it) and, within that, time-periods of set length in which other metrics are averaged. The data are intended for use in a state-switching model.
+#' Summarize SMRT (and/or Lander2) tag data from .nc files for each foraging dive cycle. There are data at two, nested time-scales: the dive cycle (a foraging dive and all the dives that follow it) and, within that, time-periods of set length in which other metrics are averaged. This function does coarse scale only. The data are intended for use in a state-switching model.
 #'
 #' @param tag_id Character string or vector with tag IDs (without "-cal.nc"). Default: all SMRT ziphius tags.
 #' @param nc_path Directory (quoted string) where .nc files are stored. Can be one string, or a list the same length as tag_ids. Note: to download latest versions from Google drive, try function: \code{\link[FBtagtools]{download_drive_nc}}. Default: current working directory. Note: use "/" and not "\" to avoid headaches.
