@@ -30,6 +30,7 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
                                   email,
                                   save_csv = TRUE,
                                   csv_name = 'dive_acoustic_summary.csv'){
+  options(digits.secs = 6)
   if ('data.frame' %in% class(tag_id)){
     tag_id <- tag_id[,'tag_id']
   }
@@ -107,7 +108,8 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
 
     # RLS for this whale
     these_rls <- all_rls |>
-      dplyr::filter(TagID == tag_id[t])
+      dplyr::filter(TagID == tag_id[t]) |>
+      dplyr::rename_with(tolower)
 
     # Detect dives
     # record:
@@ -155,7 +157,7 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
         this_buzz <- readr::read_csv(file.path(ae_path, ae_files[bi]),
                                      show_col_types = FALSE)
       }
-      this_buzz <- rename_with(this_buzz, tolower)
+      this_buzz <- dplyr::rename_with(this_buzz, tolower)
       if (!('label' %in% names(this_buzz))){
         this_buzz <- this_buzz |>
           dplyr::mutate(label = NA)
@@ -175,7 +177,7 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
         # need to rename variables - newer and older files don't match
         # new files have Note, Label, UTC, Duration
         # will use note and label
-        this_buzz[[i]] <- rename_with(this_buzz[[i]], tolower)
+        this_buzz[[i]] <- dplyr::rename_with(this_buzz[[i]], tolower)
         if (!('label' %in% names(this_buzz[[i]]))){
           this_buzz[[i]] <- this_buzz[[i]] |>
             dplyr::mutate(label = NA)
@@ -189,6 +191,23 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
     #FOR BUZZES
     # per SC keep ones that are labelled "BW Buzz" but not "Poss" or "Possible" and NOT probably
     if (nrow(this_buzz) > 0){
+      if ('utc' %in% names(this_buzz)){
+        format2 <- suppressWarnings(is.na(lubridate::dmy_hms(dplyr::pull(this_buzz, 'utc') |> dplyr::first())))
+        if (format2){
+          this_buzz <- this_buzz |>
+            dplyr::mutate(utc = lubridate::ymd_hms(utc))
+        }else{
+        this_buzz <- this_buzz |>
+          dplyr::mutate(utc = lubridate::mdy_hms(utc))
+        }
+      }
+      if (!('sec_since_tagon' %in% names(this_buzz))){
+        tagst <- this_data$info$dephist_device_datetime_start |>
+          lubridate::dmy_hms(tz = 'UTC')
+        this_buzz <- this_buzz |>
+          dplyr::mutate(sec_since_tagon = difftime(utc, tagst, units = 'secs'),
+                        sec_since_tagon = as.numeric(sec_since_tagon))
+      } # end of making sec_since_tagon variable
       this_buzz <- this_buzz |>
         dplyr::filter(stringr::str_detect(note, pattern = 'BW Buzz') |
                         stringr::str_detect(label, pattern = 'BW Buzz')) |>
@@ -213,7 +232,7 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
       if (!('buzz_duration_s' %in% names(this_buzz))){
         # new files have different variable names
         this_buzz <- this_buzz |>
-          dplyr::rename(buzz_duration_s = Duration)
+          dplyr::rename(buzz_duration_s = duration)
       }
     }
 
@@ -261,7 +280,7 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
 
     if (nrow(this_events) > 0){
       # convert UTC event times to CST (old files)
-      if ('event_start_UTC_corrected' %in% names(this_events[[i]])){
+      if ('event_start_UTC_corrected' %in% names(this_events)){
         this_events <- this_events |>
           dplyr::mutate(sec_since_tagon = difftime(event_start_UTC_corrected,
                                                    lubridate::dmy_hms(this_data$info$dephist_device_datetime_start),
@@ -273,32 +292,56 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
       # change eventType to event_type
       # change EventEnd to event_end
       # add sec_since_tagon and duration
-      if ('eventType' %in% names(this_events[[i]])){
-        this_events[[i]] <- rename(this_events[[i]], event_type = eventType)
+      if ('eventType' %in% names(this_events)){
+        this_events <- dplyr::rename(this_events, event_type = eventType)
       }
-      if ('EventEnd' %in% names(this_events[[i]])){
-        this_events[[i]] <- rename(this_events[[i]], event_end = EventEnd)
-      }
-      if ('UTC' %in% names(this_events[[i]])){
-        # make UTC into a datetime object (if it's there)
-        this_events[[i]] <- this_events[[i]] |>
-          dplyr::mutate(UTC = lubridate::ymd_hms(UTC))
+      if ('EventEnd' %in% names(this_events)){
+        this_events <- dplyr::rename(this_events, event_end = EventEnd)
       }
       # make all var names all lower case
-      this_events[[i]] <- dplyr::rename_with(this_events[[i]], tolower)
-
-      if (!('sec_since_tagon' %in% names(this_events[[i]]))){
+      this_events <- dplyr::rename_with(this_events, tolower)
+      # make sure times are formatted as dttm objects
+      if ('utc' %in% names(this_events)){
+        format2 <- suppressWarnings(is.na(lubridate::dmy_hms(dplyr::pull(this_events, 'utc') |>
+                                                               dplyr::first())))
+        if (format2){
+          this_events <- this_events |>
+            dplyr::mutate(utc = lubridate::ymd_hms(utc))
+        }else{
+          this_events <- this_events |>
+            dplyr::mutate(utc = lubridate::mdy_hms(utc))
+        }
+      }
+      if ('event_end' %in% names(this_events)){
+        format2 <- suppressWarnings(is.na(lubridate::dmy_hms(dplyr::pull(this_events, 'event_end') |>
+                                                               dplyr::first())))
+        if (format2){
+          this_events <- this_events |>
+            dplyr::mutate(event_end = lubridate::ymd_hms(event_end))
+        }else{
+          this_events <- this_events |>
+            dplyr::mutate(event_end = lubridate::mdy_hms(event_end))
+        }
+      }
+      if (!('sec_since_tagon' %in% names(this_events))){
         tagst <- this_data$info$dephist_device_datetime_start |>
           lubridate::dmy_hms(tz = 'UTC')
-        this_events[[i]] <- this_events[[i]] |>
-          dplyr::mutate(sec_since_tagon = difftime(utc, tagst), units = 'secs',
+        this_events <- this_events |>
+          dplyr::mutate(sec_since_tagon = difftime(utc, tagst, units = 'secs'),
                         sec_since_tagon = as.numeric(sec_since_tagon))
       } # end of making sec_since_tagon variable
-      if (!('duration' %in% names(this_events[[i]]))){
+      if ('event_start_utc_corrected' %in% names(this_events)){
+        this_events <- this_events |>
+          dplyr::mutate(duration = difftime(event_end_utc_corrected,
+                                            event_start_utc_corrected,
+                                            units = 'secs'),
+                        duration = as.numeric(duration))
+      }
+      if (!('duration' %in% names(this_events))){
         tagst <- this_data$info$dephist_device_datetime_start |>
           lubridate::dmy_hms(tz = 'UTC')
-        this_events[[i]] <- this_events[[i]] |>
-          dplyr::mutate(duration = difftime(utc, event_end, units = 'secs'),
+        this_events <- this_events |>
+          dplyr::mutate(duration = difftime(event_end, utc, units = 'secs'),
                         duration = as.numeric(duration))
       } # end of making duration variable
     }
@@ -480,9 +523,9 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
         dplyr::group_by_all() |>
         dplyr::ungroup(sec_since_tagon, duration) |>
         dplyr::summarise(
-          nonfocal_clicks = ifelse(dplyr::n() > 0,
-                                   'Present',
-                                   'Absent'),
+          nonfocal_clicks = ifelse(is.na(dplyr::first(sec_since_tagon)),
+                                   'Absent',
+                                   'Present'),
           n_nonfocal_clicks = NA,
           nonfocal_click_start_sec = dplyr::first(sec_since_tagon),
           nonfocal_click_end_sec = dplyr::last(sec_since_tagon) + dplyr::last(duration),
@@ -573,7 +616,7 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
                                                               bb_rms, type) |>
                                      dplyr::rename(ping_duration = duration),
                                    start_x = start,
-                                   end_x = end,
+                                   end_x = next_start, # so pings AFTER a dive are included with the prev dive
                                    start_y = sec_since_tagon)
 
       these_dives <- these_dives |>
