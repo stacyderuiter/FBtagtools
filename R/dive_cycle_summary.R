@@ -18,7 +18,6 @@
 #' @param track_dir Directory to store tracks in (if save_tracks is TRUE). Defaults to working directory.
 #' @param csv_name File name (with path, if desired) in which to save results in csv format. Default is dive_acoustic_summary.csv.
 #' @return A data.frame() with one row per dive, per whale
-#' @importFrom magrittr "%>%"
 #' @export
 
 dive_cycle_summary <- function(tag_id = zc_smrt_tag_list,
@@ -85,16 +84,16 @@ dive_cycle_summary <- function(tag_id = zc_smrt_tag_list,
   # note: a few fewer dives that in das :(
   dive_class <- readr::read_csv(dive_class_file,
                                 guess_max = 2000,
-                                show_col_types = FALSE) %>%
-    dplyr::mutate(rounded_start = round(Start/10) * 10) %>%
-    dplyr::select(TagID, rounded_start, preds_prob.bottom.tree.Yes, preds_class.bottom.tree) %>%
+                                show_col_types = FALSE) |>
+    dplyr::mutate(rounded_start = round(Start/10) * 10) |>
+    dplyr::select(TagID, rounded_start, preds_prob.bottom.tree.Yes, preds_class.bottom.tree) |>
     dplyr::rename(tag_id = TagID,
                   prob_foraging = preds_prob.bottom.tree.Yes,
-                  dive_class = preds_class.bottom.tree) %>%
+                  dive_class = preds_class.bottom.tree) |>
     dplyr::mutate(dive_class = ifelse(dive_class == 'Yes', 'foraging', 'non-foraging'),
                   tag_id = ifelse(tag_id == "Zc-20180331-173187", "Zica-20180331-173187", tag_id))
 
-  das <- das %>%
+  das <- das |>
     dplyr::mutate(rounded_start = round(dive_start_sec/10) * 10)
 
   das <- dplyr::left_join(das,
@@ -103,32 +102,32 @@ dive_cycle_summary <- function(tag_id = zc_smrt_tag_list,
 
   # fill in "foraging"/non-foraging for missing IF acoustic data present
   # leave missing if no acoustic data and not classed by ML tree algorithm (about 9 dives)
-  das <- das %>%
-    dplyr::mutate(dive_class = ifelse(is.na(dive_class) & n_clicks > 0, 'foraging', dive_class)) %>%
+  das <- das |>
+    dplyr::mutate(dive_class = ifelse(is.na(dive_class) & n_clicks > 0, 'foraging', dive_class)) |>
     dplyr::mutate(dive_class = ifelse(is.na(dive_class) & n_clicks == 0, 'non-foraging', dive_class))
 
   # aggregate to dive CYCLES instead of just dives
   # give a dive-number to each foraging dive by whale and then fill down to create groups?
-  FD <- das %>%
-    dplyr::arrange(tag_id, dive_start_sec) %>%
-    dplyr::group_by(tag_id) %>%
-    dplyr::filter(dive_class == 'foraging') %>%
-    dplyr::mutate(foraging_dive_id = as.numeric(c(1:dplyr::n()))) %>%
+  FD <- das |>
+    dplyr::arrange(tag_id, dive_start_sec) |>
+    dplyr::group_by(tag_id) |>
+    dplyr::filter(dive_class == 'foraging') |>
+    dplyr::mutate(foraging_dive_id = as.numeric(c(1:dplyr::n()))) |>
     dplyr::select(tag_id, dive_start_sec, foraging_dive_id)
 
-  das <- dplyr::left_join(das, FD, by = c('tag_id', 'dive_start_sec')) %>%
-    dplyr::group_by(tag_id) %>%
-    tidyr::fill(foraging_dive_id, .direction = 'down') %>%
+  das <- dplyr::left_join(das, FD, by = c('tag_id', 'dive_start_sec')) |>
+    dplyr::group_by(tag_id) |>
+    tidyr::fill(foraging_dive_id, .direction = 'down') |>
     dplyr::ungroup()
 
   # group by foraging dive cycle and compute stuff
-  dcs <- das %>%
+  dcs <- das |>
     # get rid of dives that are not part of a foraging dive cycle
-    dplyr::filter(!is.na(foraging_dive_id)) %>%
+    dplyr::filter(!is.na(foraging_dive_id)) |>
     # coarse scale variables:
     # path/step/turn/tortuosity (GPS and ptrack??)
 
-    dplyr::group_by(tag_id, foraging_dive_id) %>%
+    dplyr::group_by(tag_id, foraging_dive_id) |>
     dplyr::summarise(dive_cycle_start_sec = dplyr::first(dive_start_sec),
                      dive_cycle_end_sec = dplyr::last(next_start),
                      dive_cycle_dur_sec = dive_cycle_end_sec - dive_cycle_start_sec,
@@ -177,17 +176,17 @@ dive_cycle_summary <- function(tag_id = zc_smrt_tag_list,
                      # across(contains('_bb_rms_min'), ~ min(.x, na.rm = TRUE)),
                      # across(contains('_bb_rms_max'), ~ max(.x, na.rm = TRUE)),
                      # NOTE: should add these after using dive cycle intervals.
-    ) %>%
+    ) |>
     dplyr::ungroup()
 
-  step_turn_data <- moveHMM::prepData(dcs %>% dplyr::select(tag_id, dive_cycle_start_sec, lat_initial, lon_initial) %>%
-                                        data.frame() %>%
+  step_turn_data <- moveHMM::prepData(dcs |> dplyr::select(tag_id, dive_cycle_start_sec, lat_initial, lon_initial) |>
+                                        data.frame() |>
                                         dplyr::mutate(ID = tag_id),
                                       type = "LL",
                                       coordNames = c("lon_initial", "lat_initial"),
-                                      LLangle = TRUE) %>%
-    dplyr::select(tag_id, dive_cycle_start_sec, step, angle) %>%
-    data.frame() %>%
+                                      LLangle = TRUE) |>
+    dplyr::select(tag_id, dive_cycle_start_sec, step, angle) |>
+    data.frame() |>
     dplyr::rename(gps_dive_cycle_net_km = step,
                   turn_angle_rad = angle)
 
@@ -206,8 +205,17 @@ dive_cycle_summary <- function(tag_id = zc_smrt_tag_list,
                          save_output = FALSE)
 
   # read in metadata about modeled RLs
-  acous_model_meta <- readxl::read_xlsx(file.path(rl_model_dir,
-                                                  'FB_ModelingDelivery_20210709_Unclass.xlsx'))
+  amf1 <- rl_model_dir[grepl('2021', rl_model_dir)]
+  amf2 <- rl_model_dir[grepl('2022', rl_model_dir)]
+
+  acous_model_meta1 <- readxl::read_xlsx(file.path(amf1, 'FB_ModelingDelivery_20210709_Unclass.xlsx')) |>
+    dplyr::mutate(ID = paste0(ID, 'A'))
+
+  acous_model_meta2 <- readxl::read_xlsx(file.path(amf2, '2021_2022_Tracking_2022.07.20Delivery.xlsx')) |>
+    dplyr::mutate(ID = paste0(ID, 'B'))
+
+  acous_model_meta <- dplyr::bind_rows(acous_model_meta1,
+                                acous_model_meta2)
 
   # paste together file path(s) and tag file name(s)
   tags <- file.path(nc_path, tag_id)
@@ -309,20 +317,21 @@ dive_cycle_summary <- function(tag_id = zc_smrt_tag_list,
     these_locs <- dplyr::left_join(these_locs, these_resids, by = 'sec_since_tagon')
     these_locs <- dplyr::left_join(these_locs, these_timeerr, by = 'sec_since_tagon')
 
-    these_locs <- these_locs %>%
+    # Filter GPS data for low time error, residual, and enough sats
+    these_locs <- these_locs |>
       dplyr::filter(time_error < 3 &
                       time_error > -3 &
                       residual < 35 &
                       satellites >= 4)
 
-    these_dive_cycles <- dcs %>%
+    these_dive_cycles <- dcs |>
       dplyr::filter(tag_id == this_data$info$depid)
 
-    these_locs <- these_locs %>%
+    these_locs <- these_locs |>
       dplyr::select(sec_since_tagon,
                     latitude,
-                    longitude) %>%
-      dplyr::filter(sec_since_tagon < max(dplyr::pull(these_dive_cycles, dive_cycle_end_sec) + 615, na.rm = TRUE)) %>%
+                    longitude) |>
+      dplyr::filter(sec_since_tagon < max(dplyr::pull(these_dive_cycles, dive_cycle_end_sec) + 615, na.rm = TRUE)) |>
       tidyr::drop_na(latitude, longitude)
 
     # add northing and easting
@@ -330,23 +339,23 @@ dive_cycle_summary <- function(tag_id = zc_smrt_tag_list,
 
     # some GPS points are impossible. Remove by hand (will thus need to review all tagouts, removing ind points more than 2km off track)
     if (this_data$info$depid == "Zica-20191012-144029"){
-      these_locs <- these_locs %>%
+      these_locs <- these_locs |>
         dplyr::filter(northing < 5000 & easting > -1000 & easting < 20000)
     }
     # if (this_data$info$depid == "Zica-20190113-151361"){ # think this one OK
-    #   these_locs <- these_locs %>%
+    #   these_locs <- these_locs |>
     #     dplyr::filter()
     # }
     # if (this_data$info$depid == "Zica-20191012-145101"){ # this one OK
-    #   these_locs <- these_locs %>%
+    #   these_locs <- these_locs |>
     #     dplyr::filter()
     # }
     # if (this_data$info$depid == "Zica-20191111-94810"){ # this one OK
-    #   these_locs <- these_locs %>%
+    #   these_locs <- these_locs |>
     #     dplyr::filter()
     # }
     # if (this_data$info$depid == "Zica-20191117-195993"){ # this one OK
-    #   these_locs <- these_locs %>%
+    #   these_locs <- these_locs |>
     #     dplyr::filter()
     # }
 
@@ -377,7 +386,7 @@ dive_cycle_summary <- function(tag_id = zc_smrt_tag_list,
       }
 
       this_data$depth$data <- zoo::na.approx(this_data$depth$data, x = c(1:nrow(this_data$depth$data)), na.rm = FALSE)
-      this_data$depth$data <- tidyr::fill(data.frame(dpth = this_data$depth$data), dpth, .direction = "downup") %>%
+      this_data$depth$data <- tidyr::fill(data.frame(dpth = this_data$depth$data), dpth, .direction = "downup") |>
         dplyr::pull(dpth)
       this_data$Alo$data <- zoo::na.approx(this_data$Alo$data,
                                            x = c(1:nrow(this_data$Alo$data)),
@@ -391,28 +400,28 @@ dive_cycle_summary <- function(tag_id = zc_smrt_tag_list,
       spd <- zoo::na.approx(spd, x = c(1:length(spd)),
                             na.rm = FALSE)
       spd <- tidyr::fill(data.frame(spd = spd),
-                         spd, .direction = "downup") %>%
+                         spd, .direction = "downup") |>
         dplyr::pull(spd) # to get initial NAs
       ptk <- tagtools::ptrack(A = this_data$Alo,
                               M = this_data$Mlo,
                               s = spd)
       # here pause and graph and verify that all GPS points are OK
-      # gf_point(northing ~ easting, data = ptk) %>%
+      # gf_point(northing ~ easting, data = ptk) |>
       # gf_point(northing ~ easting, data = these_locs, color = 'red')
       if (nrow(these_locs) == 1){
         # if there are not any GPS points other than the first then don't bother
         trk <- ptk
       }else{
         trk <- tagtools::fit_tracks(P = these_locs[,c('northing', 'easting')],
-                                    T = these_locs %>% dplyr::pull(sec_since_tagon),
+                                    T = these_locs |> dplyr::pull(sec_since_tagon),
                                     D = ptk[,c('northing', 'easting')],
                                     sampling_rate = this_data$Alo$sampling_rate)
       }
 
-      trk <- trk %>%
+      trk <- trk |>
         dplyr::mutate(sec_since_tagon = (-1 + c(1:nrow(trk))) / this_data$Alo$sampling_rate,
-                      tagon_lat = these_locs %>% dplyr::pull(latitude) %>% dplyr::first(),
-                      tagon_lon = these_locs %>% dplyr::pull(longitude) %>% dplyr::first())
+                      tagon_lat = these_locs |> dplyr::pull(latitude) |> dplyr::first(),
+                      tagon_lon = these_locs |> dplyr::pull(longitude) |> dplyr::first())
 
 
       if (save_tracks){
@@ -436,7 +445,7 @@ dive_cycle_summary <- function(tag_id = zc_smrt_tag_list,
 
     # add in RL data
     # measured RL data for this whale
-    these_rls <- all_rls %>%
+    these_rls <- all_rls |>
       dplyr::filter(TagID == tag_id[t])
 
     # add in measured RLs
@@ -451,12 +460,12 @@ dive_cycle_summary <- function(tag_id = zc_smrt_tag_list,
 
     # add in MODELED RLs
     #model_fnames <- list.files(rl_model_dir, pattern = paste0(tag_id[t], '.*', '.csv'))
-    these_model_meta <- acous_model_meta %>%
-      dplyr::filter(TagID == tag_id[t]) %>%
+    these_model_meta <- acous_model_meta |>
+      dplyr::filter(TagID == tag_id[t]) |>
       dplyr::rename(tag_sonar_km = `Tag-SonarKm`)
 
     # add model results file names for each dive cycle plus modeled RLs?
-    these_dive_cycles <- these_dive_cycles %>%
+    these_dive_cycles <- these_dive_cycles |>
       dplyr::mutate(model_fnames = NA,
                     model_ids = NA,
                     model_data_source = NA,
@@ -473,14 +482,14 @@ dive_cycle_summary <- function(tag_id = zc_smrt_tag_list,
                     model_rl_median = NA)
 
     for (cy in c(1:nrow(these_dive_cycles))){
-      dcst <- these_dive_cycles %>%
-        dplyr::pull(fd_start_UTC) %>%
+      dcst <- these_dive_cycles |>
+        dplyr::pull(fd_start_UTC) |>
         dplyr::nth(cy)
       dcet <- these_dive_cycles$fd_start_UTC[cy] +
-        lubridate::seconds(these_dive_cycles %>%
-                             dplyr::pull(dive_cycle_dur_sec) %>%
+        lubridate::seconds(these_dive_cycles |>
+                             dplyr::pull(dive_cycle_dur_sec) |>
                              dplyr::nth(cy))
-      this_cycle_meta <- these_model_meta %>%
+      this_cycle_meta <- these_model_meta |>
         dplyr::filter((StartTime >= dcst & StartTime < dcet) | # starts during this cycle
                         (StartTime < dcst & EndTime > dcst) | # or spans whole cycle, starting before and ending after
                         (EndTime >= dcst & EndTime < dcet)) # or ends during this cycle
@@ -493,20 +502,31 @@ dive_cycle_summary <- function(tag_id = zc_smrt_tag_list,
                                                                           width = 5,
                                                                           side = 'left',
                                                                           pad = '0'), '.csv',
-                                                         sep = '' ))
-        these_dive_cycles$model_ids[cy] <- this_cycle_meta %>% dplyr::pull(ID) %>% list()
-        these_dive_cycles$model_sonar_loc_source[cy] = this_cycle_meta %>% dplyr::pull(SonarLocSource) %>% unique() %>% list()
-        these_dive_cycles$model_source_whale_distance_km[cy] = this_cycle_meta %>% dplyr::pull(tag_sonar_km) %>% list()
-        these_dive_cycles$model_source_whale_distance_min_km[cy] = this_cycle_meta %>% dplyr::pull(tag_sonar_km) %>% min(na.rm = TRUE)
-        these_dive_cycles$model_source_whale_distance_max_km[cy] = this_cycle_meta %>% dplyr::pull(tag_sonar_km) %>% max(na.rm = TRUE)
-        these_dive_cycles$model_source_whale_distance_median_km[cy] = this_cycle_meta %>% dplyr::pull(tag_sonar_km) %>% median(na.rm = TRUE)
+                                                         sep = ''))
+        these_dive_cycles$model_ids[cy] <- this_cycle_meta |> dplyr::pull(ID) |> list()
+        these_dive_cycles$model_sonar_loc_source[cy] = this_cycle_meta |> dplyr::pull(SonarLocSource) |> unique() |> list()
+        these_dive_cycles$model_source_whale_distance_km[cy] = this_cycle_meta |> dplyr::pull(tag_sonar_km) |> list()
+        these_dive_cycles$model_source_whale_distance_min_km[cy] = this_cycle_meta |> dplyr::pull(tag_sonar_km) |> min(na.rm = TRUE)
+        these_dive_cycles$model_source_whale_distance_max_km[cy] = this_cycle_meta |> dplyr::pull(tag_sonar_km) |> max(na.rm = TRUE)
+        these_dive_cycles$model_source_whale_distance_median_km[cy] = this_cycle_meta |> dplyr::pull(tag_sonar_km) |> median(na.rm = TRUE)
       }
 
       this_model <- list()
+      # make sure to get the acoustic model data file location that matches this tagout (there are 2 as of 2022)
+      if (this_data$info$depid %in% pull(acous_model_meta1, TagID)){
+        # first group -- data folder is amf1
+        this_rl_model_dir <- amf1
+      }else{
+        if (this_data$info$depid %in% pull(acous_model_meta2, TagID)){
+          this_rl_model_dir <- amf2
+        }else{
+          error(paste('Tag ID not found in acoustic model output metadata for tag', this_data$info$depid))
+        }
+      }
       if (nrow(this_cycle_meta) > 0){
         for (mf in c(1:nrow(this_cycle_meta))){
-          this_file <- file.path(rl_model_dir, these_dive_cycles %>%
-                                   dplyr::pull(model_fnames) %>%
+          this_file <- file.path(this_rl_model_dir, these_dive_cycles |>
+                                   dplyr::pull(model_fnames) |>
                                    dplyr::nth(cy))
           this_file <- this_file[mf]
 
@@ -518,7 +538,7 @@ dive_cycle_summary <- function(tag_id = zc_smrt_tag_list,
                                    'Archive',
                                  TRUE ~ 'Other')
           sty <- stringr::str_split(this_file, '_', simplify = TRUE)
-          sty <- sty %>% dplyr::nth(length(sty) - 1)
+          sty <- sty |> dplyr::nth(length(sty) - 1)
             if (!file.exists(this_file)){
               # need to check if this_cycle_meta[mf] has ready = jpg or error = low snr
               this_model[[mf]] <- tibble::tibble(
@@ -529,17 +549,17 @@ dive_cycle_summary <- function(tag_id = zc_smrt_tag_list,
                 model_data_source = ss,
                 model_sonar_type = sty
               )
-              if (dplyr::pull(this_cycle_meta, ready) %>% dplyr::nth(mf) == 'jpg'){
-                this_model[[mf]] <- this_model[[mf]] %>%
+              if (dplyr::pull(this_cycle_meta, ready) |> dplyr::nth(mf) == 'jpg'){
+                this_model[[mf]] <- this_model[[mf]] |>
                   dplyr::mutate(model_status = 'too quiet')
               }
             }else{
               this_model[[mf]] <- readr::read_csv(this_file,
-                                                  show_col_types = FALSE) %>%
+                                                  show_col_types = FALSE) |>
                 dplyr::rename(hyd_lat = `Hyd Lat (deg)`,
                               hyd_lon = `Hyd Lon (deg)`,
                               rl_depth_m = `Received Depth (m)`,
-                              rl = `Received Level (dB // 1uPa)`) %>%
+                              rl = `Received Level (dB // 1uPa)`) |>
                 dplyr::mutate(model_data_source = ss,
                               model_sonar_type = sty,
                               model_status = 'OK')
@@ -550,53 +570,63 @@ dive_cycle_summary <- function(tag_id = zc_smrt_tag_list,
 
 
           if ('rl_depth_m' %in% names(this_model)) {
-            this_model2 <- this_model %>%
-              dplyr::filter(rl_depth_m <= (dplyr::pull(these_dive_cycles, fd_max_depth) %>%
+            this_model2 <- this_model |>
+              dplyr::filter(rl_depth_m <= (dplyr::pull(these_dive_cycles, fd_max_depth) |>
                                              dplyr::nth(cy)))
 
-            these_dive_cycles$model_rl_max_depth[cy] <- this_model %>%
-              dplyr::filter(rl_depth_m == plyr::round_any((these_dive_cycles %>%
-                                                             dplyr::pull(fd_max_depth) %>%
+            these_dive_cycles$model_rl_max_depth[cy] <- this_model |>
+              dplyr::filter(rl_depth_m == plyr::round_any((these_dive_cycles |>
+                                                             dplyr::pull(fd_max_depth) |>
                                                              dplyr::nth(cy)),
                                                           5,
-                                                          f = floor) ) %>%
-              dplyr::pull(rl) %>%
+                                                          f = floor) ) |>
+              dplyr::pull(rl) |>
               max(na.rm = TRUE)
 
             # this will be the RL at the min modeled depth (since during a dive cycle the whale is @ zero depth sometimes)
-            these_dive_cycles$model_rl_min_depth[cy] <- this_model %>%
-              dplyr::filter(rl_depth_m == min(dplyr::pull(this_model, rl_depth_m), na.rm = TRUE)) %>%
-              dplyr::pull(rl) %>%
+            these_dive_cycles$model_rl_min_depth[cy] <- this_model |>
+              dplyr::filter(rl_depth_m == min(dplyr::pull(this_model, rl_depth_m), na.rm = TRUE)) |>
+              dplyr::pull(rl) |>
               max(na.rm = TRUE)
 
-            these_dive_cycles$model_rl_min[cy] <- this_model2 %>%
-              dplyr::pull(rl) %>%
+            these_dive_cycles$model_rl_min[cy] <- this_model2 |>
+              dplyr::pull(rl) |>
               min(na.rm = TRUE)
 
-            these_dive_cycles$model_rl_max[cy] <- this_model2 %>%
-              dplyr::pull(rl) %>%
+            these_dive_cycles$model_rl_max[cy] <- this_model2 |>
+              dplyr::pull(rl) |>
               max(na.rm = TRUE)
-            these_dive_cycles$model_rl_median[cy] <- this_model2 %>%
-              dplyr::pull(rl) %>%
+            these_dive_cycles$model_rl_median[cy] <- this_model2 |>
+              dplyr::pull(rl) |>
               median(na.rm = TRUE)
-            these_dive_cycles$model_data_source[cy] <- this_model %>%
-              dplyr::pull(model_data_source) %>%
-              unique() %>%
-              sort() %>%
+            these_dive_cycles$model_data_source[cy] <- this_model |>
+              dplyr::pull(model_data_source) |>
+              unique() |>
+              sort() |>
               stringr::str_c(collapse = ', ')
-            these_dive_cycles$model_sonar_type[cy] <- this_model %>%
-              dplyr::pull(model_sonar_type) %>%
-              unique() %>%
-              sort() %>%
+            these_dive_cycles$model_sonar_type[cy] <- this_model |>
+              dplyr::pull(model_sonar_type) |>
+              unique() |>
+              sort() |>
               stringr::str_c(collapse = ', ')
 
           }# end of if nrow(this_data) > 0)
     } # end loop over dive cycles cy
 
-    these_dive_cycles <- these_dive_cycles %>%
+    these_dive_cycles <- these_dive_cycles |>
       dplyr::mutate(dplyr::across(starts_with('model_rl'),
-                                  ~ifelse(.x < 0, 0, .x)))
-    # tibble-concatenating
+                                  ~ifelse(.x < 0, 0, .x))) |>
+      # unlistify list columns (don't translate to CSV at all...)
+      dplyr::group_by(all) |>
+      dplyr::summarise(model_fnames = paste0(model_fnames, collapse = ' '),
+                       model_IDs = paste0(model_IDs, collapse = ' '),
+                       model_sonar_loc_source = paste0(model_sonar_loc_source, collapse = ' '),
+                       model_source_whale_distance_km = paste0(model_source_whale_distance_km, collapse = ' ')
+                       ) |>
+      dplyr::ungroup()
+
+    # tibble-concatenating and saving file
+    # do INSIDE loop so you don't have to start over in case of an error
     data_out[[t]] <- these_dive_cycles
     data_out_all <- dplyr::bind_rows(data_out)
     if (save_csv){
