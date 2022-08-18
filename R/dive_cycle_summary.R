@@ -82,15 +82,24 @@ dive_cycle_summary <- function(tag_id = zc_smrt_tag_list,
 
   # read in data on foraging dives/not and add to das
   # note: a few fewer dives that in das :(
+  # dive_class <- readr::read_csv(dive_class_file,
+  #                               guess_max = 2000,
+  #                               show_col_types = FALSE) |>
+  #   dplyr::mutate(rounded_start = round(Start/10) * 10) |>
+  #   dplyr::select(TagID, rounded_start, preds_prob.bottom.tree.Yes, preds_class.bottom.tree) |>
+  #   dplyr::rename(tag_id = TagID,
+  #                 prob_foraging = preds_prob.bottom.tree.Yes,
+  #                 dive_class = preds_class.bottom.tree) |>
+  #   dplyr::mutate(dive_class = ifelse(dive_class == 'Yes', 'foraging', 'non-foraging'),
+  #                 tag_id = ifelse(tag_id == "Zc-20180331-173187", "Zica-20180331-173187", tag_id))
+
   dive_class <- readr::read_csv(dive_class_file,
                                 guess_max = 2000,
                                 show_col_types = FALSE) |>
     dplyr::mutate(rounded_start = round(Start/10) * 10) |>
-    dplyr::select(TagID, rounded_start, preds_prob.bottom.tree.Yes, preds_class.bottom.tree) |>
-    dplyr::rename(tag_id = TagID,
-                  prob_foraging = preds_prob.bottom.tree.Yes,
-                  dive_class = preds_class.bottom.tree) |>
-    dplyr::mutate(dive_class = ifelse(dive_class == 'Yes', 'foraging', 'non-foraging'),
+    dplyr::select(TagID, rounded_start, ForagingModPrediction) |>
+    dplyr::rename(tag_id = TagID) |>
+    dplyr::mutate(dive_class = ifelse(ForagingModPrediction == 'Yes', 'foraging', 'non-foraging'),
                   tag_id = ifelse(tag_id == "Zc-20180331-173187", "Zica-20180331-173187", tag_id))
 
   das <- das |>
@@ -103,8 +112,8 @@ dive_cycle_summary <- function(tag_id = zc_smrt_tag_list,
   # fill in "foraging"/non-foraging for missing IF acoustic data present
   # leave missing if no acoustic data and not classed by ML tree algorithm (about 9 dives)
   das <- das |>
-    dplyr::mutate(dive_class = ifelse(is.na(dive_class) & n_clicks > 0, 'foraging', dive_class)) |>
-    dplyr::mutate(dive_class = ifelse(is.na(dive_class) & n_clicks == 0, 'non-foraging', dive_class))
+    dplyr::mutate(dive_class = ifelse(is.na(dive_class) & click_dur_sec > 0, 'foraging', dive_class)) |>
+    dplyr::mutate(dive_class = ifelse(is.na(dive_class) & click_dur_sec == 0, 'non-foraging', dive_class))
 
   # aggregate to dive CYCLES instead of just dives
   # give a dive-number to each foraging dive by whale and then fill down to create groups?
@@ -212,7 +221,9 @@ dive_cycle_summary <- function(tag_id = zc_smrt_tag_list,
     dplyr::mutate(ID = paste0(ID, 'A'))
 
   acous_model_meta2 <- readxl::read_xlsx(file.path(amf2, '2021_2022_Tracking_2022.07.20Delivery.xlsx')) |>
-    dplyr::mutate(ID = paste0(ID, 'B'))
+    dplyr::mutate(ID = paste0(ID, 'B'),
+                  ready = VBP # indicator of whether modeling has a data file or a failure in which case there is a jpg instead - in older file this var was called ready and here called vbp
+                  )
 
   acous_model_meta <- dplyr::bind_rows(acous_model_meta1,
                                 acous_model_meta2)
@@ -223,7 +234,7 @@ dive_cycle_summary <- function(tag_id = zc_smrt_tag_list,
 
   # loop over tags
   for (t in c(1:length(tags))){
-    cat(paste('tag: ', t, '\n'))
+    cat(paste('tag: ', t, ', ', tags[t], '\n'))
     if (exists('this_data')){
       rm(this_data)
     }
@@ -242,7 +253,7 @@ dive_cycle_summary <- function(tag_id = zc_smrt_tag_list,
     if (exists('step_turn_data')){
       rm(step_turn_data)
     }
-    if (exists('T')){
+    if (exists('T', mode = 'numeric')){
       rm(T)
     }
 
@@ -434,12 +445,16 @@ dive_cycle_summary <- function(tag_id = zc_smrt_tag_list,
       }
 
       for (cy in c(1:nrow(these_dive_cycles))){
-        cysi <- round(dplyr::pull(these_dive_cycles[cy, "dive_cycle_start_sec"]) * this_data$Alo$sampling_rate)
-        cyei <- round(dplyr::pull(these_dive_cycles[cy, "dive_cycle_end_sec"]) * this_data$Alo$sampling_rate)
-        T <- trk[seq(from = cysi, to = cyei), c('northing', 'easting')]
-        these_dive_cycles[cy, 'tortuosity'] <- tagtools::tortuosity(T,
-                                                                    sampling_rate = this_data$Alo$sampling_rate,
-                                                                    intvl = (cyei - cysi + 1)/ this_data$Alo$sampling_rate)[1]
+        if (nrow(trk) > 1){
+          cysi <- round(dplyr::pull(these_dive_cycles[cy, "dive_cycle_start_sec"]) * this_data$Alo$sampling_rate)
+          cyei <- round(dplyr::pull(these_dive_cycles[cy, "dive_cycle_end_sec"]) * this_data$Alo$sampling_rate)
+          T <- trk[seq(from = cysi, to = cyei), c('northing', 'easting')]
+          these_dive_cycles[cy, 'tortuosity'] <- tagtools::tortuosity(T,
+                                                                      sampling_rate = this_data$Alo$sampling_rate,
+                                                                      intvl = (cyei - cysi + 1)/ this_data$Alo$sampling_rate)[1]
+        }else{# end of "if trk has more than 1 row"
+          these_dive_cycles[cy, 'tortuosity'] <- NA
+        }
       } # end of loop over dive cycles
     } # end of "if there is Aw and Mw"
 
@@ -513,14 +528,14 @@ dive_cycle_summary <- function(tag_id = zc_smrt_tag_list,
 
       this_model <- list()
       # make sure to get the acoustic model data file location that matches this tagout (there are 2 as of 2022)
-      if (this_data$info$depid %in% pull(acous_model_meta1, TagID)){
+      if (this_data$info$depid %in% dplyr::pull(acous_model_meta1, TagID)){
         # first group -- data folder is amf1
         this_rl_model_dir <- amf1
       }else{
-        if (this_data$info$depid %in% pull(acous_model_meta2, TagID)){
+        if (this_data$info$depid %in% dplyr::pull(acous_model_meta2, TagID)){
           this_rl_model_dir <- amf2
         }else{
-          error(paste('Tag ID not found in acoustic model output metadata for tag', this_data$info$depid))
+          warning(paste('Tag ID not found in acoustic model output metadata for tag', this_data$info$depid))
         }
       }
       if (nrow(this_cycle_meta) > 0){
@@ -615,11 +630,12 @@ dive_cycle_summary <- function(tag_id = zc_smrt_tag_list,
 
     these_dive_cycles <- these_dive_cycles |>
       dplyr::mutate(dplyr::across(starts_with('model_rl'),
-                                  ~ifelse(.x < 0, 0, .x))) |>
+                                  ~ifelse(.x < 0, 0, .x)))
+    these_dive_cycles <- these_dive_cycles |>
       # unlistify list columns (don't translate to CSV at all...)
-      dplyr::group_by(all) |>
+      dplyr::group_by(dplyr::across(tidyselect::everything())) |>
       dplyr::summarise(model_fnames = paste0(model_fnames, collapse = ' '),
-                       model_IDs = paste0(model_IDs, collapse = ' '),
+                       model_ids = paste0(model_ids, collapse = ' '),
                        model_sonar_loc_source = paste0(model_sonar_loc_source, collapse = ' '),
                        model_source_whale_distance_km = paste0(model_source_whale_distance_km, collapse = ' ')
                        ) |>
