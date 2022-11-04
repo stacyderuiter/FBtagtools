@@ -1,6 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>https://stacyderuiter.github.io/FBtagtools/404.html</loc>
+  </url>
+  <url>
+    <loc>https://stacyderuiter.github.io/FBtagtools/CODE_OF_CONDUCT.html</loc>
+  </url>
+  <url>
+    <loc>https://stacyderuiter.github.io/FBtagtools/CONTRIBUTING.html</loc>
+  </url>
+  <url>
+    <loc>https://stacyderuiter.github.io/FBtagtools/LICENSE-text.html</loc>
+  </url>
+  <url>
+    <loc>https://stacyderuiter.github.io/FBtagtools/LICENSE.html</loc>
+  </url>
+  <url>
+    <loc>https://stacyderuiter.github.io/FBtagtools/SUPPORT.html</loc>
+  </url>
+  <url>
+    <loc>https://stacyderuiter.github.io/FBtagtools/authors.html</loc>
+  </url>
+  <url>
     <loc>https://stacyderuiter.github.io/FBtagtools/index.html</loc>
   </url>
   <url>
@@ -28,6 +49,9 @@
     <loc>https://stacyderuiter.github.io/FBtagtools/reference/combine_all_clicks.html</loc>
   </url>
   <url>
+    <loc>https://stacyderuiter.github.io/FBtagtools/reference/combine_ping_logs.html</loc>
+  </url>
+  <url>
     <loc>https://stacyderuiter.github.io/FBtagtools/reference/dive_acoustic_summary.html</loc>
   </url>
   <url>
@@ -49,6 +73,9 @@
     <loc>https://stacyderuiter.github.io/FBtagtools/reference/extract_rls.html</loc>
   </url>
   <url>
+    <loc>https://stacyderuiter.github.io/FBtagtools/reference/extract_rls_nolog.html</loc>
+  </url>
+  <url>
     <loc>https://stacyderuiter.github.io/FBtagtools/reference/extract_wav_times.html</loc>
   </url>
   <url>
@@ -56,6 +83,12 @@
   </url>
   <url>
     <loc>https://stacyderuiter.github.io/FBtagtools/reference/get_br.html</loc>
+  </url>
+  <url>
+    <loc>https://stacyderuiter.github.io/FBtagtools/reference/get_tagon_time.html</loc>
+  </url>
+  <url>
+    <loc>https://stacyderuiter.github.io/FBtagtools/reference/index.html</loc>
   </url>
   <url>
     <loc>https://stacyderuiter.github.io/FBtagtools/reference/interval_join.html</loc>
