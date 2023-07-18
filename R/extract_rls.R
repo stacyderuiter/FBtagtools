@@ -79,7 +79,7 @@ extract_rls <- function(rl_file = c('RLs_3obank.csv',
       filepath <- ping_file_loc[f]
       filepath <- stringr::str_split(filepath, '/', simplify = TRUE)
       n <- length(unlist(filepath))
-      filepath <- filepath |> dplyr::nth(n)
+      filepath <- filepath[n]
       this_tag_id <- stringr::str_remove_all(filepath, '_Individual_MFA_Pings.csv')
       raw_pings[[f]] <- raw_pings[[f]] |>
         dplyr::mutate(`Tag ID` = this_tag_id)
