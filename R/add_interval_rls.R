@@ -8,7 +8,6 @@
 #' @param end_x name of variable in x (quotes not needed) with end times of intervals in seconds since start of tag recording
 #' @param start_ping name of variable in ping_data giving start times of pings in seconds since start of tag recording
 #' @return x with additional columns giving average, min, max, etc. RLs in each time interval
-#' @importFrom magrittr "|>"
 #' @export
 add_interval_rls <- function(x, ping_data, start_x, end_x, start_ping){
   start_x = rlang::enquo(start_x)
