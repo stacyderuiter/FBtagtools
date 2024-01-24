@@ -60,7 +60,10 @@ add_interval_rls <- function(x, ping_data, start_x, end_x, start_ping){
     # but they should just be missing
     dplyr::select(!tidyselect::starts_with('NA_')) |>
     dplyr::mutate(dplyr::across(contains('mfa') | contains('echosounder') | contains('explos'),
-                                ~ifelse(is.infinite(.x), NA, .x)))
+                                ~ifelse(is.infinite(.x), NA, .x))) |>
+    # say "there are 0 pings" instead of NA for ping counts
+    dplyr::mutate(dplyr::across(contains('n_pings'),
+                                ~ifelse(is.na(.x), 0, .x)))
 
   return(x)
 }
