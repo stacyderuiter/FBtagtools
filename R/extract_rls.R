@@ -26,8 +26,7 @@ extract_rls <- function(rl_file = c("/Users/sld33/Dropbox/FBdata/RLs/Zica-201910
                         out_file,
                         signal = 'MFAS',
                         overwrite = TRUE){
-  if (!(file.exists(rl_file[1])) |
-      !(file.exists(ping_log_file[1]))){
+  if (!(file.exists(rl_file[1]))){
     if (missing(email)){
       stop('Email is required for Google Drive authentication and data download.')
     }else{
