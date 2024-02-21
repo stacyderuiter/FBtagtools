@@ -8,7 +8,7 @@
 #' @param bathy_path A directory path to the folder containing all bathymetry data. File names in the folder must be like this :'NEPACseafloor-116.000-30.000-115.000-31.000.csv'. If this input is NULL, data will be pulled from online, thus requiring internet access. (Note that there may be some access and speed issues with pulling the data from the web.)
 #' @return A dataframe with associated bathymetry data as new columns in the dataset
 #' @examples #examples not yet provided, sorry :(
-
+#' @export
 add_bathy <- function(x, lat_var, lon_var, z_radius = 2.5, bathy_path) {
   lat_var <- rlang::enquo(lat_var)
   lon_var <- rlang::enquo(lon_var)
