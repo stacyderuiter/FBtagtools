@@ -124,12 +124,9 @@ extract_rls <- function(rl_file = c("/Users/sld33/Dropbox/FBdata/RLs/Zica-201910
   # remove idiotic spaces in variable names
   names(raw_rls) <- stringr::str_remove_all(names(raw_rls), pattern = ' ')
   }
-  raw_rls <- dplyr::bind_rows(raw_rls)
+  raw_rls <- dplyr::bind_rows(raw_rls) |>
+    arrange(depid, st)
 
-  rl_log <- dplyr::arrange(raw_rls,
-                            depid,
-                            st) |>
-    dplyr::mutate(st_UTC = lubridate::mdy_hms(st_UTC))
     # dplyr::mutate(start_UTC = lubridate::round_date(start_UTC, unit = ".1second"))
 
   # to properly join need to convert between st cst and start_time UTC
