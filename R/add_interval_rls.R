@@ -44,7 +44,8 @@ add_interval_rls <- function(x, ping_data, start_x, end_x, start_ping){
                            NA,
                            bb_rms_mean))   |>
     dplyr::ungroup() |>
-    dplyr::mutate(signal_type = tolower(signal_type)) |>
+    dplyr::mutate(signal_type = tolower(signal_type),
+                  signal_type = ifelse(signal_type == 'mfas', 'mfa', signal_type)) |>
     tidyr::pivot_wider(names_from = signal_type,
                        values_from = c(n_pings,
                                        ping_dur_mean_sec,
