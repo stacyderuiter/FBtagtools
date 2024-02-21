@@ -267,7 +267,10 @@ rl_output <- dplyr::bind_rows(mfa_pings, echo_pings, explos_pings) |>
   dplyr::arrange(depid,
                  st) |>
   dplyr::mutate(BB_RMS = ifelse(is.infinite(BB_RMS), NA, BB_RMS)) |>
-  dplyr::rename(TagID = depid)
+  dplyr::rename(TagID = depid,
+                signal = signal_type,
+                duration = dur,
+                sec_since_tagon = st)
 
 if (save_output){
   readr::write_csv(rl_output,
