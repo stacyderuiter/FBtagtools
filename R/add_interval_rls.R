@@ -21,14 +21,14 @@ add_interval_rls <- function(x, ping_data, start_x, end_x, start_ping){
   x <- interval_join(x,
                      ping_data |> dplyr::select(sec_since_tagon,
                                                  duration,
-                                                 bb_rms, type) |>
+                                                 bb_rms, signal_type) |>
                        dplyr::rename(ping_duration = duration),
                      start_x = !!start_x,
                      end_x = !!end_x,
                      start_y = !!start_ping)
 
   x <- x |>
-    dplyr::group_by_all() |> # includes groups by signal type
+    dplyr::group_by_all() |> # includes groups by signal signal_type
     dplyr::ungroup(sec_since_tagon, bb_rms, ping_duration) |>
     dplyr::summarise(
       n_pings = sum(!is.na(sec_since_tagon)),
@@ -44,8 +44,8 @@ add_interval_rls <- function(x, ping_data, start_x, end_x, start_ping){
                            NA,
                            bb_rms_mean))   |>
     dplyr::ungroup() |>
-    dplyr::mutate(type = tolower(type)) |>
-    tidyr::pivot_wider(names_from = type,
+    dplyr::mutate(signal_type = tolower(signal_type)) |>
+    tidyr::pivot_wider(names_from = signal_type,
                        values_from = c(n_pings,
                                        ping_dur_mean_sec,
                                        ping_dur_min_sec,
@@ -54,7 +54,7 @@ add_interval_rls <- function(x, ping_data, start_x, end_x, start_ping){
                                        bb_rms_max,
                                        bb_rms_median,
                                        bb_rms_mean),
-                       names_glue = "{type}_{.value}" # put the mfa_ echo_ etc. FIRST not last
+                       names_glue = "{signal_type}_{.value}" # put the mfa_ echo_ etc. FIRST not last
     ) |>
     # if there are no non-missing RLs then some of the results will be Inf instead of missing
     # but they should just be missing
