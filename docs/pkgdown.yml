@@ -1,8 +1,8 @@
-pandoc: 3.1.1
-pkgdown: 2.0.7
+pandoc: 3.1.11
+pkgdown: 2.0.9
 pkgdown_sha: ~
 articles: {}
-last_built: 2023-07-19T22:00Z
+last_built: 2024-07-26T15:40Z
 urls:
   reference: https://stacyderuiter.github.io/FBtagtools/reference
   article: https://stacyderuiter.github.io/FBtagtools/articles

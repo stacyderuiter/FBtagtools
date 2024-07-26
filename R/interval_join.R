@@ -15,7 +15,7 @@
 #' @importFrom magrittr "%>%"
 #' @export
 #' @examples
-#' Examples will go here
+#' # Examples will go here
 interval_join <- function(x, y, start_x, start_y,
                           end_x = start_x, end_y,
                           suffix = c("", ".new"),

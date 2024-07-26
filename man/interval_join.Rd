@@ -42,5 +42,5 @@ A data.frame like the input interval dataset \code{x}, but with additional colum
 Given one dataset where each row represents an interval at coarser scale (for example, one row per dive with dive start/end times), pull in summary information about finer-time-scale data. For example, add the max RL during each dive, or the median MSA during each dive.
 }
 \examples{
-Examples will go here
+# Examples will go here
 }

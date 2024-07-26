@@ -4,16 +4,16 @@
 \alias{solar_stage}
 \title{Add time columns to time-series}
 \usage{
-solar_stage(time, lat, long, time_zone = "America/Los_Angeles")
+solar_stage(utc_time, lat, long, time_zone = "America/Los_Angeles")
 }
 \arguments{
+\item{utc_time}{UTC time}
+
 \item{lat}{latitude}
 
 \item{long}{longitude}
 
 \item{time_zone}{Time zone for local time; defaults to 'America/Los_Angeles'}
-
-\item{utc_time}{UTC time}
 }
 \value{
 solar stage (categorical): "Day", "Night", "Dusk" or "Dawn"
@@ -22,5 +22,5 @@ solar stage (categorical): "Day", "Night", "Dusk" or "Dawn"
 Add time (in seconds since tagon and perhaps as datetimes in UTC and/or local timezone) to a tibble or data-frame with regularly sampled data
 }
 \examples{
-Examples will go here
+# Examples will go here
 }

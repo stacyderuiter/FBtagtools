@@ -4,16 +4,16 @@
 \alias{solar_elev}
 \title{Add sun elevation angle data}
 \usage{
-solar_elev(time, lat, long, time_zone = "America/Los_Angeles")
+solar_elev(utc_time, lat, long, time_zone = "America/Los_Angeles")
 }
 \arguments{
+\item{utc_time}{UTC time}
+
 \item{lat}{latitude}
 
 \item{long}{longitude}
 
 \item{time_zone}{Time zone for local time; defaults to 'America/Los_Angeles'}
-
-\item{utc_time}{UTC time}
 }
 \value{
 solar stage (categorical): "Day", "Night", "Dusk" or "Dawn"
@@ -22,5 +22,5 @@ solar stage (categorical): "Day", "Night", "Dusk" or "Dawn"
 Add sun elevation angle (time of day) data to a tibble or data-frame with regularly sampled data
 }
 \examples{
-Examples will go here
+# Examples will go here
 }

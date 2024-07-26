@@ -11,7 +11,7 @@
 #' @importFrom magrittr "%>%"
 #' @export
 #' @examples
-#' Examples will go here
+#' # Examples will go here
 add_sensor_times <- function(x, sampling_rate, start_offset = 0,
                       add_utc_time = FALSE,
                       tagon_time){

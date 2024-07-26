@@ -20,5 +20,5 @@ data.frame \code{x} with one added column called local_time
 Given an input data frame that already has UTC datetimes, add another datetime column giving the local time
 }
 \examples{
-Examples will go here
+# Examples will go here
 }

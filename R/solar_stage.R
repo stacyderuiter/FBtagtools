@@ -10,13 +10,13 @@
 #' @importFrom magrittr "%>%"
 #' @export
 #' @examples
-#' Examples will go here
-solar_stage <- function(time, lat, long, time_zone = "America/Los_Angeles") {
-  elev <- oce::sunAngle(time, long, lat, useRefraction = FALSE)$altitude
+#' # Examples will go here
+solar_stage <- function(utc_time, lat, long, time_zone = "America/Los_Angeles") {
+  elev <- oce::sunAngle(utc_time, long, lat, useRefraction = FALSE)$altitude
 
   stage <- dplyr::case_when(elev > 6 ~ 'Day',
                           elev < -12 ~ 'Night',
-                          lubridate::hour(lubridate::with_tz(time, tzone = time_zone)) >= 12 ~ 'Dusk',
+                          lubridate::hour(lubridate::with_tz(utc_time, tzone = time_zone)) >= 12 ~ 'Dusk',
                           TRUE ~ 'Dawn')
 
   return(stage)

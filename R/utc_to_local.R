@@ -9,7 +9,7 @@
 #' @importFrom magrittr "%>%"
 #' @export
 #' @examples
-#' Examples will go here
+#' # Examples will go here
 utc_to_local <- function(x, utc_var,
                          tz = 'America/Los_Angeles'){
   utc_var <- rlang::enquo(utc_var)

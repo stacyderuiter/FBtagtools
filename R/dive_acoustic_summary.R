@@ -15,7 +15,7 @@
 #' @return A data.frame() with one row per dive, per whale
 #' @export
 #' @examples
-#' Examples will go here
+#' # Examples will go here
 dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
                                   nc_path = getwd(),
                                   ae_path = getwd(),

@@ -20,5 +20,5 @@ The input \code{x}, but with additional column(s) sec_since_tagon with times in 
 Add time (in seconds since tagon or datetimes in UTC and/or local timezone) to a tibble or data-frame with event times (conversion between datetime and seconds_since_tagon formats)
 }
 \examples{
-Examples will go here
+# # Examples will go here
 }

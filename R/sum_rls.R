@@ -7,7 +7,7 @@
 #' @return sum of the received levels in `rls`
 #' @export
 #' @examples
-#' coming soon
+#' # coming soon
 sum_rls <- function(rls,
                     energy = FALSE){
   if (!energy){

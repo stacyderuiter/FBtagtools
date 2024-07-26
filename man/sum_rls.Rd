@@ -18,5 +18,5 @@ sum of the received levels in \code{rls}
 Add up RLs in several frequency bands. Used by \code{\link[FBtagtools]{extract_rls}}.
 }
 \examples{
-coming soon
+# coming soon
 }

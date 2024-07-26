@@ -9,7 +9,7 @@
 #' @importFrom magrittr "%>%"
 #' @export
 #' @examples
-#' Examples will go here
+#' # # Examples will go here
 add_event_times <- function(x, start_x,
                             tagon_time){
   start_x <- rlang::enquo(start_x)

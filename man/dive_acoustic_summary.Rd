@@ -48,5 +48,5 @@ A data.frame() with one row per dive, per whale
 Summarize SMRT (and/or Lander2) tag data from .nc files for each foraging dive cycle. Note: Currently for only SMRT tags; function and help will be updated to allow inclusion of Lander2 data as well when possible.
 }
 \examples{
-Examples will go here
+# Examples will go here
 }

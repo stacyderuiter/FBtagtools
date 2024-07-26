@@ -30,5 +30,5 @@ A data.frame with the data (one row per sample) and column sec_since_tagon with 
 Add time (in seconds since tagon and perhaps as datetimes in UTC and/or local timezone) to a tibble or data-frame with regularly sampled data
 }
 \examples{
-Examples will go here
+# Examples will go here
 }

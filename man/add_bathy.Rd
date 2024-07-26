@@ -21,7 +21,7 @@ add_bathy(x, lat_var, lon_var, z_radius = 2.5, bathy_path)
 A dataframe with associated bathymetry data as new columns in the dataset
 }
 \description{
-Pulls bathymetry data from either the internet or a provided database and associates it with tag locations. Note: code obtained from Eric Keene (NOAA) via David Sweeney (MarEcoTel) with minor modification. To use, you will need bathymetry data. You can download it from the Drive FreakinBeakinTagData > Acoustic Preliminary Results > Resources-Seafloor.zip or by using \code{\link[FBtagtools]{download_bathymetry}} (which just locates and downloads that zip file for you).
+Pulls bathymetry data from either the internet or a provided database and associates it with tag locations. Note: code obtained from Eric Keene (NOAA) via David Sweeney (MarEcoTel) with minor modification. To use, you will need bathymetry data. You can download it from the Drive FreakinBeakinTagData > Acoustic Preliminary Results > Resources-Seafloor.zip or by using \code{\link{download_bathy}} (which just locates and downloads that zip file for you).
 }
 \examples{
 #examples not yet provided, sorry :(
