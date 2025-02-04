@@ -119,7 +119,9 @@ extract_rls <- function(rl_file = c("/Users/sld33/Dropbox/FBdata/RLs/Zica-201910
   raw_rls <- list()
   for (rf in c(1:length(rl_file_loc))){
     new_names <- c(TagID = 'depid',
-                   TagID = 'tag_id')
+                   TagID = 'tag_id',
+                   duration = 'dur',
+                   sec_since_tagon = 'st')
   raw_rls[[rf]] <- suppressWarnings(readr::read_csv(rl_file_loc[rf],
                              col_types = readr::cols(),
                              na = c('', 'NA', 'NaN'))) |>
@@ -129,7 +131,7 @@ extract_rls <- function(rl_file = c("/Users/sld33/Dropbox/FBdata/RLs/Zica-201910
   names(raw_rls) <- stringr::str_remove_all(names(raw_rls), pattern = ' ')
   }
   raw_rls <- dplyr::bind_rows(raw_rls) |>
-    arrange(TagID, st)
+    arrange(TagID, sec_since_tagon)
 
   if (!("notes" %in% names(raw_rls))){
     raw_rls <- raw_rls |>
@@ -137,7 +139,7 @@ extract_rls <- function(rl_file = c("/Users/sld33/Dropbox/FBdata/RLs/Zica-201910
   }
     # dplyr::mutate(start_UTC = lubridate::round_date(start_UTC, unit = ".1second"))
 
-  # to properly join need to convert between st cst and start_time UTC
+  # to properly join need to convert between sec_since_tagon cst and start_time UTC
   # will add in UTC time stamps direct from audit file in to 2022+ RL files to ease matching up?
   # but original RL file does not have it and simply assumes rows correspond to each other
   # orig_tags <- c("Zica-20180113-173188",
@@ -156,7 +158,7 @@ extract_rls <- function(rl_file = c("/Users/sld33/Dropbox/FBdata/RLs/Zica-201910
   #                              rl_log |> dplyr::filter(!(depid %in% orig_tags)) |> dplyr::distinct(),
   #                              by = c("Tag ID" = "depid", "start_time" = "st_UTC"))
   # ping_log <- dplyr::bind_rows(ping_logA, ping_logB) |>
-  #   dplyr::rename(sec_since_tagon = st)
+  #   dplyr::rename(sec_since_tagon = sec_since_tagon)
 
   # processing for specific signal types
   if (sum(grepl(pattern = 'mfa',
@@ -175,10 +177,10 @@ extract_rls <- function(rl_file = c("/Users/sld33/Dropbox/FBdata/RLs/Zica-201910
       dplyr::filter(stringr::str_detect(tolower(signal_type), pattern = "mfa")) |>
       dplyr::select(tidyselect::all_of(mfa_cols), notes,
                     TagID, signal_type,
-                    st_UTC, st, dur) |>
+                    st_UTC, sec_since_tagon, duration) |>
       tidyr::pivot_longer(cols = tidyselect::starts_with('SPL_')) |>
       dplyr::group_by(TagID, signal_type,
-                      st_UTC, st, dur, notes) |>
+                      st_UTC, sec_since_tagon, duration, notes) |>
       dplyr::summarize(BB_RMS = sum_rls(value)) |>
       dplyr::ungroup()
 
@@ -186,11 +188,11 @@ extract_rls <- function(rl_file = c("/Users/sld33/Dropbox/FBdata/RLs/Zica-201910
       dplyr::filter(stringr::str_detect(tolower(signal_type), pattern = "mfa")) |>
       dplyr::select(tidyselect::all_of(mfa_cols), notes,
                     TagID, signal_type,
-                    st_UTC, st, dur
+                    st_UTC, sec_since_tagon, duration
                     )
 
     mfa_pings <- dplyr::left_join(mfa_bb, mfa_spl,
-                                  by = c("TagID", "signal_type", "st_UTC", "st", "dur", "notes"))
+                                  by = c("TagID", "signal_type", "st_UTC", "sec_since_tagon", "duration", "notes"))
   }else{
     mfa_pings <- NULL
   }
@@ -214,10 +216,10 @@ extract_rls <- function(rl_file = c("/Users/sld33/Dropbox/FBdata/RLs/Zica-201910
       dplyr::filter(stringr::str_detect(tolower(signal_type), pattern = "echo")) |>
       dplyr::select(tidyselect::all_of(echo_cols), notes,
                     TagID, signal_type, st_UTC,
-                    st, dur) |>
+                    sec_since_tagon, duration) |>
       tidyr::pivot_longer(cols = tidyselect::starts_with('SPL_')) |>
       dplyr::group_by(TagID, signal_type,
-                      st_UTC, st, dur, notes) |>
+                      st_UTC, sec_since_tagon, duration, notes) |>
       dplyr::summarize(BB_RMS = sum_rls(value)) |>
       dplyr::ungroup()
 
@@ -225,11 +227,11 @@ extract_rls <- function(rl_file = c("/Users/sld33/Dropbox/FBdata/RLs/Zica-201910
       dplyr::filter(stringr::str_detect(tolower(signal_type), pattern = "echo")) |>
       dplyr::select(tidyselect::all_of(echo_cols), notes,
                     TagID, signal_type,
-                    st_UTC, st, dur)
+                    st_UTC, sec_since_tagon, duration)
 
     echo_pings <- dplyr::left_join(echo_bb, echo_spl,
                                   by = c("TagID", "signal_type",
-                                         "st_UTC", "st", "dur", "notes"))
+                                         "st_UTC", "sec_since_tagon", "duration", "notes"))
 
   }else{
     echo_pings <- NULL
@@ -250,10 +252,10 @@ extract_rls <- function(rl_file = c("/Users/sld33/Dropbox/FBdata/RLs/Zica-201910
       dplyr::filter(stringr::str_detect(tolower(signal_type), pattern = "explos")) |>
       dplyr::select(tidyselect::all_of(explos_cols),notes,
                     TagID, signal_type,
-                    st_UTC, st, dur) |>
+                    st_UTC, sec_since_tagon, duration) |>
       tidyr::pivot_longer(cols = tidyselect::starts_with('SPL_')) |>
       dplyr::group_by(TagID, signal_type,
-                      st_UTC, st, dur, notes,) |>
+                      st_UTC, sec_since_tagon, duration, notes,) |>
       dplyr::summarize(BB_RMS = sum_rls(value)) |>
       dplyr::ungroup()
 
@@ -261,22 +263,20 @@ extract_rls <- function(rl_file = c("/Users/sld33/Dropbox/FBdata/RLs/Zica-201910
       dplyr::filter(stringr::str_detect(tolower(signal_type), pattern = "explos")) |>
       dplyr::select(tidyselect::all_of(explos_cols), notes,
                     TagID, signal_type,
-                    st_UTC, st, dur)
+                    st_UTC, sec_since_tagon, duration)
 
     explos_pings <- dplyr::left_join(explos_bb, explos_spl,
                                      by = c("TagID", "signal_type",
-                                            "st_UTC", "st", "dur", "notes"))
+                                            "st_UTC", "sec_since_tagon", "duration", "notes"))
 
   }else{
     explos_pings <- NULL
   }
 
 rl_output <- dplyr::bind_rows(mfa_pings, echo_pings, explos_pings) |>
-  dplyr::arrange(TagID,
-                 st) |>
   dplyr::mutate(BB_RMS = ifelse(is.infinite(BB_RMS), NA, BB_RMS)) |>
-  dplyr::rename(duration = dur,
-                sec_since_tagon = st)
+  dplyr::arrange(TagID,
+                 sec_since_tagon)
 
 if (save_output){
   readr::write_csv(rl_output,
