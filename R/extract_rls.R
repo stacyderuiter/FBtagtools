@@ -118,15 +118,18 @@ extract_rls <- function(rl_file = c("/Users/sld33/Dropbox/FBdata/RLs/Zica-201910
 
   raw_rls <- list()
   for (rf in c(1:length(rl_file_loc))){
+    new_names <- c(tag_id = 'depid',
+                   tag_id = 'TagID')
   raw_rls[[rf]] <- suppressWarnings(readr::read_csv(rl_file_loc[rf],
                              col_types = readr::cols(),
                              na = c('', 'NA', 'NaN'))) |>
-    dplyr::mutate(st_UTC = as.character(st_UTC))
+    dplyr::mutate(st_UTC = as.character(st_UTC)) |>
+    dplyr::rename(dplyr::any_of(new_names))
   # remove idiotic spaces in variable names
   names(raw_rls) <- stringr::str_remove_all(names(raw_rls), pattern = ' ')
   }
   raw_rls <- dplyr::bind_rows(raw_rls) |>
-    arrange(depid, st)
+    arrange(TagID, st)
 
   if (!("notes" %in% names(raw_rls))){
     raw_rls <- raw_rls |>
@@ -171,10 +174,10 @@ extract_rls <- function(rl_file = c("/Users/sld33/Dropbox/FBdata/RLs/Zica-201910
     mfa_bb <- raw_rls |>
       dplyr::filter(stringr::str_detect(tolower(signal_type), pattern = "mfa")) |>
       dplyr::select(tidyselect::all_of(mfa_cols), notes,
-                    depid, signal_type,
+                    tag_id, signal_type,
                     st_UTC, st, dur) |>
       tidyr::pivot_longer(cols = tidyselect::starts_with('SPL_')) |>
-      dplyr::group_by(depid, signal_type,
+      dplyr::group_by(tag_id, signal_type,
                       st_UTC, st, dur, notes) |>
       dplyr::summarize(BB_RMS = sum_rls(value)) |>
       dplyr::ungroup()
@@ -182,12 +185,12 @@ extract_rls <- function(rl_file = c("/Users/sld33/Dropbox/FBdata/RLs/Zica-201910
     mfa_spl <- raw_rls |>
       dplyr::filter(stringr::str_detect(tolower(signal_type), pattern = "mfa")) |>
       dplyr::select(tidyselect::all_of(mfa_cols), notes,
-                    depid, signal_type,
+                    tag_id, signal_type,
                     st_UTC, st, dur
                     )
 
     mfa_pings <- dplyr::left_join(mfa_bb, mfa_spl,
-                                  by = c("depid", "signal_type", "st_UTC", "st", "dur", "notes"))
+                                  by = c("tag_id", "signal_type", "st_UTC", "st", "dur", "notes"))
   }else{
     mfa_pings <- NULL
   }
@@ -210,10 +213,10 @@ extract_rls <- function(rl_file = c("/Users/sld33/Dropbox/FBdata/RLs/Zica-201910
     echo_bb <- raw_rls |>
       dplyr::filter(stringr::str_detect(tolower(signal_type), pattern = "echo")) |>
       dplyr::select(tidyselect::all_of(echo_cols), notes,
-                    depid, signal_type, st_UTC,
+                    tag_id, signal_type, st_UTC,
                     st, dur) |>
       tidyr::pivot_longer(cols = tidyselect::starts_with('SPL_')) |>
-      dplyr::group_by(depid, signal_type,
+      dplyr::group_by(tag_id, signal_type,
                       st_UTC, st, dur, notes) |>
       dplyr::summarize(BB_RMS = sum_rls(value)) |>
       dplyr::ungroup()
@@ -221,11 +224,11 @@ extract_rls <- function(rl_file = c("/Users/sld33/Dropbox/FBdata/RLs/Zica-201910
     echo_spl <- raw_rls |>
       dplyr::filter(stringr::str_detect(tolower(signal_type), pattern = "echo")) |>
       dplyr::select(tidyselect::all_of(echo_cols), notes,
-                    depid, signal_type,
+                    tag_id, signal_type,
                     st_UTC, st, dur)
 
     echo_pings <- dplyr::left_join(echo_bb, echo_spl,
-                                  by = c("depid", "signal_type",
+                                  by = c("tag_id", "signal_type",
                                          "st_UTC", "st", "dur", "notes"))
 
   }else{
@@ -246,10 +249,10 @@ extract_rls <- function(rl_file = c("/Users/sld33/Dropbox/FBdata/RLs/Zica-201910
     explos_bb <- raw_rls |>
       dplyr::filter(stringr::str_detect(tolower(signal_type), pattern = "explos")) |>
       dplyr::select(tidyselect::all_of(explos_cols),notes,
-                    depid, signal_type,
+                    tag_id, signal_type,
                     st_UTC, st, dur) |>
       tidyr::pivot_longer(cols = tidyselect::starts_with('SPL_')) |>
-      dplyr::group_by(depid, signal_type,
+      dplyr::group_by(tag_id, signal_type,
                       st_UTC, st, dur, notes,) |>
       dplyr::summarize(BB_RMS = sum_rls(value)) |>
       dplyr::ungroup()
@@ -257,11 +260,11 @@ extract_rls <- function(rl_file = c("/Users/sld33/Dropbox/FBdata/RLs/Zica-201910
     explos_spl <- raw_rls |>
       dplyr::filter(stringr::str_detect(tolower(signal_type), pattern = "explos")) |>
       dplyr::select(tidyselect::all_of(explos_cols), notes,
-                    depid, signal_type,
+                    tag_id, signal_type,
                     st_UTC, st, dur)
 
     explos_pings <- dplyr::left_join(explos_bb, explos_spl,
-                                     by = c("depid", "signal_type",
+                                     by = c("tag_id", "signal_type",
                                             "st_UTC", "st", "dur", "notes"))
 
   }else{
@@ -269,11 +272,10 @@ extract_rls <- function(rl_file = c("/Users/sld33/Dropbox/FBdata/RLs/Zica-201910
   }
 
 rl_output <- dplyr::bind_rows(mfa_pings, echo_pings, explos_pings) |>
-  dplyr::arrange(depid,
+  dplyr::arrange(tag_id,
                  st) |>
   dplyr::mutate(BB_RMS = ifelse(is.infinite(BB_RMS), NA, BB_RMS)) |>
-  dplyr::rename(TagID = depid,
-                duration = dur,
+  dplyr::rename(duration = dur,
                 sec_since_tagon = st)
 
 if (save_output){
