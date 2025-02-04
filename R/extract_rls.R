@@ -275,7 +275,8 @@ rl_output <- dplyr::bind_rows(mfa_pings, echo_pings, explos_pings) |>
   dplyr::arrange(tag_id,
                  st) |>
   dplyr::mutate(BB_RMS = ifelse(is.infinite(BB_RMS), NA, BB_RMS)) |>
-  dplyr::rename(duration = dur,
+  dplyr::rename(TagID = tag_id, # for consistency with RL model outputs
+                duration = dur,
                 sec_since_tagon = st)
 
 if (save_output){
