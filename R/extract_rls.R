@@ -118,8 +118,8 @@ extract_rls <- function(rl_file = c("/Users/sld33/Dropbox/FBdata/RLs/Zica-201910
 
   raw_rls <- list()
   for (rf in c(1:length(rl_file_loc))){
-    new_names <- c(tag_id = 'depid',
-                   tag_id = 'TagID')
+    new_names <- c(TagID = 'depid',
+                   TagID = 'tag_id')
   raw_rls[[rf]] <- suppressWarnings(readr::read_csv(rl_file_loc[rf],
                              col_types = readr::cols(),
                              na = c('', 'NA', 'NaN'))) |>
