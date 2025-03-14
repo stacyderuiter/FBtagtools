@@ -49,7 +49,7 @@ add_interval_rls <- function(x, ping_data, start_x, end_x, start_ping){
                            bb_rms_mean),
       csel = 10 * log10(
         sum(
-          10^( ifelse(is.na(sel_db, 0, sel_db)) /10 )
+          10^( ifelse(is.na(sel_db), 0, sel_db) /10 )
         )
       )
     )   |>
