@@ -208,7 +208,7 @@ extract_rls <- function(rl_file = c("/Users/sld33/Dropbox/FBdata/RLs/Zica-201910
       tidyr::pivot_longer(cols = tidyselect::starts_with('SEL_')) |>
       dplyr::group_by(TagID, signal_type,
                       st_UTC, sec_since_tagon, duration, notes) |>
-      dplyr::summarize(SEL_dB = sum_rls(value, energy = TRUE)) |>
+      dplyr::summarize(SEL_dB = sum_rls(value)) |>
       dplyr::ungroup()
 
     mfa_pings0 <- dplyr::left_join(mfa_bb, mfa_spl,
