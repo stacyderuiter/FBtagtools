@@ -9,6 +9,8 @@
 #' @param start_ping name of variable in ping_data giving start times of pings in seconds since start of tag recording
 #' @return x with additional columns giving average, min, max, etc. RLs in each time interval
 #' @export
+#'
+
 add_interval_rls <- function(x, ping_data, start_x, end_x, start_ping){
   start_x = rlang::enquo(start_x)
   end_x = rlang::enquo(end_x)
@@ -21,7 +23,9 @@ add_interval_rls <- function(x, ping_data, start_x, end_x, start_ping){
   x <- interval_join(x,
                      ping_data |> dplyr::select(sec_since_tagon,
                                                  duration,
-                                                 bb_rms, signal_type) |>
+                                                 bb_rms,
+                                                sel_db,
+                                                signal_type) |>
                        dplyr::rename(ping_duration = duration),
                      start_x = !!start_x,
                      end_x = !!end_x,
@@ -29,7 +33,7 @@ add_interval_rls <- function(x, ping_data, start_x, end_x, start_ping){
 
   x <- x |>
     dplyr::group_by_all() |> # includes groups by signal signal_type
-    dplyr::ungroup(sec_since_tagon, bb_rms, ping_duration) |>
+    dplyr::ungroup(sec_since_tagon, bb_rms, sel_db, ping_duration) |>
     dplyr::summarise(
       n_pings = sum(!is.na(sec_since_tagon)),
       ping_dur_mean_sec = mean(ping_duration, na.rm = TRUE),
@@ -42,7 +46,13 @@ add_interval_rls <- function(x, ping_data, start_x, end_x, start_ping){
       bb_rms_mean = ifelse(is.infinite(bb_rms_mean) |
                              is.na(bb_rms_mean),
                            NA,
-                           bb_rms_mean))   |>
+                           bb_rms_mean),
+      csel = 10 * log10(
+        sum(
+          10^( ifelse(is.na(sel_db, 0, sel_db)) /10 )
+        )
+      )
+    )   |>
     dplyr::ungroup() |>
     dplyr::mutate(signal_type = tolower(signal_type),
                   signal_type = ifelse(signal_type == 'mfas', 'mfa', signal_type)) |>
@@ -54,7 +64,8 @@ add_interval_rls <- function(x, ping_data, start_x, end_x, start_ping){
                                        bb_rms_min,
                                        bb_rms_max,
                                        bb_rms_median,
-                                       bb_rms_mean),
+                                       bb_rms_mean,
+                                       csel),
                        names_glue = "{signal_type}_{.value}" # put the mfa_ echo_ etc. FIRST not last
     ) |>
     # if there are no non-missing RLs then some of the results will be Inf instead of missing
