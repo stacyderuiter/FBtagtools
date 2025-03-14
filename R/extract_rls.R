@@ -297,7 +297,8 @@ extract_rls <- function(rl_file = c("/Users/sld33/Dropbox/FBdata/RLs/Zica-201910
   }
 
 rl_output <- dplyr::bind_rows(mfa_pings, echo_pings, explos_pings) |>
-  dplyr::mutate(BB_RMS = ifelse(is.infinite(BB_RMS), NA, BB_RMS)) |>
+  dplyr::mutate(BB_RMS = ifelse(is.infinite(BB_RMS), NA, BB_RMS),
+                SEL_dB = ifelse(is.infinite(SEL_dB), NA, SEL_dB)) |>
   dplyr::arrange(TagID,
                  sec_since_tagon)
 
