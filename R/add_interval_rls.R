@@ -47,11 +47,7 @@ add_interval_rls <- function(x, ping_data, start_x, end_x, start_ping){
                              is.na(bb_rms_mean),
                            NA,
                            bb_rms_mean),
-      csel = 10 * log10(
-        sum(
-          10^( ifelse(is.na(sel_db), 0, sel_db) /10 )
-        )
-      )
+      csel = sum_rls(sel_db, energy = TRUE)
     )   |>
     dplyr::ungroup() |>
     dplyr::mutate(signal_type = tolower(signal_type),

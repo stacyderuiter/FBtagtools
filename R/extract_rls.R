@@ -173,6 +173,15 @@ extract_rls <- function(rl_file = c("/Users/sld33/Dropbox/FBdata/RLs/Zica-201910
           )
     )
 
+    mfa_sel_cols <- which(
+      suppressWarnings(
+        readr::parse_number(names(raw_rls))
+      ) < 9000 &
+        suppressWarnings(
+          stringr::str_detect(names(raw_rls), 'SEL')
+        )
+    )
+
     mfa_bb <- raw_rls |>
       dplyr::filter(stringr::str_detect(tolower(signal_type), pattern = "mfa")) |>
       dplyr::select(tidyselect::all_of(mfa_cols), notes,
@@ -191,8 +200,22 @@ extract_rls <- function(rl_file = c("/Users/sld33/Dropbox/FBdata/RLs/Zica-201910
                     st_UTC, sec_since_tagon, duration
                     )
 
-    mfa_pings <- dplyr::left_join(mfa_bb, mfa_spl,
+    mfa_sel <- raw_rls |>
+      dplyr::filter(stringr::str_detect(tolower(signal_type), pattern = "mfa")) |>
+      dplyr::select(tidyselect::all_of(mfa_sel_cols), notes,
+                    TagID, signal_type,
+                    st_UTC, sec_since_tagon, duration) |>
+      tidyr::pivot_longer(cols = tidyselect::starts_with('SEL_')) |>
+      dplyr::group_by(TagID, signal_type,
+                      st_UTC, sec_since_tagon, duration, notes) |>
+      dplyr::summarize(SEL_dB = sum_rls(value, energy = TRUE)) |>
+      dplyr::ungroup()
+
+    mfa_pings0 <- dplyr::left_join(mfa_bb, mfa_spl,
                                   by = c("TagID", "signal_type", "st_UTC", "sec_since_tagon", "duration", "notes"))
+    mfa_pings <- dplyr::left_join(mfa_pings0, mfa_sel,
+                                   by = c("TagID", "signal_type", "st_UTC", "sec_since_tagon", "duration", "notes"))
+    rm(mfa_pings0)
   }else{
     mfa_pings <- NULL
   }
