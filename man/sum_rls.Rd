@@ -4,12 +4,10 @@
 \alias{sum_rls}
 \title{Sum RLs in dB}
 \usage{
-sum_rls(rls, energy = FALSE)
+sum_rls(rls)
 }
 \arguments{
 \item{rls}{numeric vector with RLs in dB}
-
-\item{energy}{Whether or not the RLs are in energy units (alternative is intensity)}
 }
 \value{
 sum of the received levels in \code{rls}
