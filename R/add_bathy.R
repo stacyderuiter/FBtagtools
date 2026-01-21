@@ -110,8 +110,8 @@ add_bathy <- function(x, lat_var, lon_var, z_radius = 2.5, bathy_path) {
           # Seafloor slope
           zmaxi <- which.max(abs(zs$z))
           zmini <- which.min(abs(zs$z))
-          zmax <- abs(zs$z[zmaxi])
-          zmin <- abs(zs$z[zmini])
+          zmax[i] <- abs(zs$z[zmaxi])
+          zmin[i] <- abs(zs$z[zmini])
           zslop <- 100 * ((zmax - zmin) / (z_rad * 1000 * 2))
           zslope[i] <- round(zslop,digits = 3)
           zsd[i] <- sd(zs$z, na.rm = TRUE)
