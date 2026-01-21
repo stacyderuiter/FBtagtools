@@ -84,7 +84,7 @@ add_bathy <- function(x, lat_var, lon_var, z_radius = 2.5, bathy_path) {
     }
 
     # Setup variables
-    z <- zslope <- zaspect <- zsd <- rep(NA, times = nrow(x))
+    z <- zslope <- zaspect <- zsd <- zn <- rep(NA, times = nrow(x))
 
     # Loop thru each entry, calculate variables
     for (i in 1:nrow(x)) {
@@ -115,6 +115,7 @@ add_bathy <- function(x, lat_var, lon_var, z_radius = 2.5, bathy_path) {
           zslop <- 100 * ((zmax - zmin) / (z_rad * 1000 * 2))
           zslope[i] <- round(zslop,digits = 3)
           zsd[i] <- sd(zs$z, na.rm = TRUE)
+          zn[i] <- length(zs$z)
 
           # Get aspect of slope
           xmax <- zs$x[zmaxi]
@@ -134,6 +135,9 @@ add_bathy <- function(x, lat_var, lon_var, z_radius = 2.5, bathy_path) {
     x$bathy_slope <- zslope
     x$bathy_aspect <- zaspect
     x$bathy_sd <- zsd
+    x$bathy_n <- zn
+    x$bathy_min <- zmin
+    x$bathy_max <- zmax
 
   } else { #if using NOAA ETOP1 online database
     # Prep x
