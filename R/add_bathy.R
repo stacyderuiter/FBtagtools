@@ -148,7 +148,7 @@ add_bathy <- function(x, lat_var, lon_var, z_radius = 2.5, bathy_path) {
     }
 
     # Get depth and slope for each point
-    n <- zmin <- zmax <- z <- zslope <- zaspect <- rep(NA, times = nrow(x))
+    n <- zmin <- zmax <- z <- zslope <- zaspect <- zsd <- rep(NA, times = nrow(x))
     for (i in 1:nrow(x)) {
       xi <- as.numeric(as.character(dplyr::pull(x, !!lon_var) %>% dplyr::nth(i)))
       yi <- as.numeric(as.character(dplyr::pull(x, !!lat_var) %>% dplyr::nth(i)))

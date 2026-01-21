@@ -114,9 +114,6 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
     # Detect dives
     # record:
     #  dive duration, start, end
-
-
-
     # one whale has some missing data in sensors.
     # this will mess up find_dives
     # make new depth vector with 0 rather than NA for this case
@@ -894,8 +891,7 @@ dive_acoustic_summary <- function(tag_id = zc_smrt_tag_list,
       }
     }
 
-    # tibble-concatenating
-    data_out[[t]] <- these_dives
+    data_out[[t]] <-these_dives
     data_out_all <- dplyr::bind_rows(data_out)
     if (save_csv){
       dout <- data_out_all |>
